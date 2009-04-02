@@ -44,21 +44,21 @@ public class Execute {
     Object Output = null;
     Object[] Params = ParseParams(SerializedParams);
     if(ActivityName.equalsIgnoreCase("IsCSVReadyFileExists")) {          
-      String CSVRootPathInput = (String)Params[0];
+      LoadAppLogic.String_UUID CSVRootPathInput = new LoadAppLogic.String_UUID((String)Params[0],UUID.randomUUID());
       Output = LoadAppLogic.IsCSVReadyFileExists(CSVRootPathInput);
     } else
       if(ActivityName.equalsIgnoreCase("ReadCSVReadyFile")) {
-        String CSVRootPathInput = (String)Params[0];
+    	LoadAppLogic.String_UUID CSVRootPathInput = new LoadAppLogic.String_UUID((String)Params[0],UUID.randomUUID());
         Output = LoadAppLogic.ReadCSVReadyFile(CSVRootPathInput);          
       }
       else
         if(ActivityName.equalsIgnoreCase("IsMatchCSVFileTables")) {
-          List<CSVFileEntry> CSVFileEntries = (List<CSVFileEntry>) Params[0];
+          LoadAppLogic.CSVFileEntryList CSVFileEntries = new LoadAppLogic.CSVFileEntryList((List<CSVFileEntry>) Params[0], UUID.randomUUID());
           Output = LoadAppLogic.IsMatchCSVFileTables(CSVFileEntries);
         }
         else
           if(ActivityName.equalsIgnoreCase("CreateEmptyLoadDB")) {
-            String JobIDInput = (String) Params[0];
+            String_UUID JobIDInput = new String_UUID((String) Params[0], UUID.randomUUID());
             Output = LoadAppLogic.CreateEmptyLoadDB(JobIDInput);
           }
           else

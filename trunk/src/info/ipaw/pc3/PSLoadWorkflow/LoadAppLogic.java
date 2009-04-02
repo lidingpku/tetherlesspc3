@@ -43,7 +43,7 @@ public class LoadAppLogic {
 		public String thisString;
 		public UUID thisUUID;
 		
-		String_UUID (String thisString, UUID thisUUID) {
+		public String_UUID (String thisString, UUID thisUUID) {
 			this.thisString = thisString;
 			this.thisUUID = thisUUID;
 		}
@@ -53,7 +53,7 @@ public class LoadAppLogic {
 		public boolean thisBoolean;
 		public UUID thisUUID;
 		
-		Boolean_UUID (boolean thisBoolean, UUID thisUUID) {
+		public Boolean_UUID (boolean thisBoolean, UUID thisUUID) {
 			this.thisBoolean = thisBoolean;
 			this.thisUUID = thisUUID;
 		}
@@ -127,7 +127,7 @@ public class LoadAppLogic {
 		public List<CSVFileEntry> thisCSVFileEntryList;
 		public UUID thisUUID;
 		
-		CSVFileEntryList (List<CSVFileEntry> thisCSVFileEntryList, UUID thisUUID) {
+		public CSVFileEntryList (List<CSVFileEntry> thisCSVFileEntryList, UUID thisUUID) {
 			this.thisCSVFileEntryList = thisCSVFileEntryList;
 			this.thisUUID = thisUUID;			
 		}
@@ -138,17 +138,16 @@ public class LoadAppLogic {
 	 * 
 	 */
 	public static class DatabaseEntry {
-		public String DBGuid;
 		public String DBName;
 		public String ConnectionString;
 		public UUID thisUUID;
 		
-		public String getDBGuid() {
-			return DBGuid;
+		public UUID getDBGuid() {
+			return thisUUID;
 		}
 
-		public void setDBGuid(String guid) {
-			DBGuid = guid;
+		public void setUUID(UUID uuid) {
+			thisUUID = uuid;
 		}
 
 		public String getDBName() {
@@ -181,40 +180,39 @@ public class LoadAppLogic {
 	 * @return true if the csv_ready.csv file exists in the CSVRoothPath. False
 	 *         otherwise.
 	 */
-	public static boolean IsCSVReadyFileExists(String CSVRootPath) {
+	public static Boolean_UUID IsCSVReadyFileExists(String_UUID CSVRootPath) {
 
 		// 1. Check if parent directory exists.
-		twpc3Logger.logINFO("1. Checking if parent directory exists: " + CSVRootPath,false);
-		File RootDirInfo = new File(CSVRootPath);
+		twpc3Logger.logINFO("1. Checking if parent directory exists: " + CSVRootPath.thisString,false);
+		File RootDirInfo = new File(CSVRootPath.thisString);
 		if (!RootDirInfo.exists()) {
 			twpc3Logger.logINFO("ERROR: Parent directory doesn't exist!", false);
-			return false;
+			return new Boolean_UUID(false,UUID.randomUUID());
 		}
 
 		// 2. Check if CSV Ready file exists. We assume a static name for the
 		// ready file.
 		twpc3Logger.logINFO("2. Now checking if CSV Ready file exists. We assume name csv_ready.csv for the ready file. ",false);
-		File ReadyFileInfo = new File(CSVRootPath, "csv_ready.csv");
+		File ReadyFileInfo = new File(CSVRootPath.thisString, "csv_ready.csv");
 		if(!ReadyFileInfo.exists())
 			twpc3Logger.logINFO("ERROR: csv_ready.csv not found at " + CSVRootPath + "!", false);
 
-		return ReadyFileInfo.exists();
+		return new Boolean_UUID(ReadyFileInfo.exists(),UUID.randomUUID());
 	}
 
 	/**
 	 * @param CSVRootPath
 	 * @return
 	 */
-	public static List<CSVFileEntry> ReadCSVReadyFile(String CSVRootPath)
+	public static CSVFileEntryList ReadCSVReadyFile(String_UUID CSVRootPath)
 	throws IOException {
-
 		// 1. Initialize output list of file entries
-		twpc3Logger.logINFO("1. Initializing output list of file entries: List<CSVFileEntry> CSVFileEntryList",false);
-		List<CSVFileEntry> CSVFileEntryList = new ArrayList<CSVFileEntry>();
-
+		CSVFileEntryList CSVFileEntries = new CSVFileEntryList(new ArrayList<CSVFileEntry>(), UUID.randomUUID());
+		twpc3Logger.logINFO("1. Initializing output list of file entries: CSVFileEntryList (ID:"+ CSVFileEntries.thisUUID +")",false);
+		
 		// 2. Open input stream to read from CSV Ready File
-		twpc3Logger.logINFO("2. Opening input stream ReadyFileStream to read from CSV Ready File: " + CSVRootPath+"csv_ready.csv",false);
-		File CSVReadyFile = new File(CSVRootPath, "csv_ready.csv");
+		twpc3Logger.logINFO("2. Opening input stream ReadyFileStream to read from CSV Ready File: " + CSVRootPath.thisString +"csv_ready.csv",false);
+		File CSVReadyFile = new File(CSVRootPath.thisString, "csv_ready.csv");
 		BufferedReader ReadyFileStream = 
 			new BufferedReader(new InputStreamReader(new FileInputStream(CSVReadyFile)));
 
@@ -233,19 +231,19 @@ public class LoadAppLogic {
 			String[] ReadyFileLineTokens = ReadyFileLine.split(",");
 
 			// 3.b. Create an empty FileEntry and populate it with the columns
-			twpc3Logger.logINFO("3.b. Creating an empty FileEntry, and populating it with the four values",true);
+			twpc3Logger.logINFO("3.b. Creating an empty FileEntry, and populating it with the four values",false);
 			CSVFileEntry FileEntry = new CSVFileEntry();
 			FileEntry.FilePath = 
-				CSVRootPath + File.separator + ReadyFileLineTokens[0].trim(); // column 1
+				CSVRootPath.thisString + File.separator + ReadyFileLineTokens[0].trim(); // column 1
 			FileEntry.HeaderPath = FileEntry.FilePath + ".hdr";
 			FileEntry.RowCount = 
 				Integer.parseInt(ReadyFileLineTokens[1].trim()); // column 2
 			FileEntry.TargetTable = ReadyFileLineTokens[2].trim(); // column 3
 			FileEntry.Checksum = ReadyFileLineTokens[3].trim(); // column 4
-
+			FileEntry.thisUUID = UUID.randomUUID();
 			// 3.c. Add file entry to output list
 			twpc3Logger.logINFO("3.c. Add new file entry to output list CSVFileEntryList",false);
-			CSVFileEntryList.add(FileEntry);
+			CSVFileEntries.thisCSVFileEntryList.add(FileEntry);
 			twpc3Logger.logINFO("--- End Iteration ---",false);
 		}
 		twpc3Logger.exitScope();
@@ -253,7 +251,8 @@ public class LoadAppLogic {
 		// 4. Close input stream and return output file entry list
 		twpc3Logger.logINFO("4. Close input stream ReadyFileStream and return output file entry list CSVFileEntryList",false);
 		ReadyFileStream.close();
-		return CSVFileEntryList;
+
+		return CSVFileEntries;
 	}
 
 	/**
@@ -262,14 +261,14 @@ public class LoadAppLogic {
 	 * @param FileEntries
 	 * @return
 	 */
-	public static boolean IsMatchCSVFileTables(List<CSVFileEntry> FileEntries) {
+	public static Boolean_UUID IsMatchCSVFileTables(CSVFileEntryList FileEntries) {
 		// check if the file count and the expected number of tables match
 		twpc3Logger.logINFO("1. Checking if the file count and the expected number of tables match",true);
-		twpc3Logger.logINFO("ACTUAL (from CSV Ready file): " + FileEntries.size() + " EXPECTED (LoadConstants.EXPECTED_TABLES.size()): " + LoadConstants.EXPECTED_TABLES.size(),false);
+		twpc3Logger.logINFO("ACTUAL (from CSVFileEntryList (ID:" + FileEntries.thisUUID + "): " + FileEntries.thisCSVFileEntryList.size() + " EXPECTED (LoadConstants.EXPECTED_TABLES.size()): " + LoadConstants.EXPECTED_TABLES.size(),false);
 
-		if (LoadConstants.EXPECTED_TABLES.size() != FileEntries.size()) {
+		if (LoadConstants.EXPECTED_TABLES.size() != FileEntries.thisCSVFileEntryList.size()) {
 			twpc3Logger.logINFO("ERROR: File count mismatch!", false);
-			return false;
+			return new Boolean_UUID(false, UUID.randomUUID());
 		}
 
 		// for each expected table name, check if it is present in the list of
@@ -285,7 +284,7 @@ public class LoadAppLogic {
 			boolean TableExists = false;
 			twpc3Logger.logINFO("=== Loop over each value in FileEntries ===",false);
 			twpc3Logger.enterScope();
-			for (CSVFileEntry FileEntry : FileEntries) {
+			for (CSVFileEntry FileEntry : FileEntries.thisCSVFileEntryList) {
 				twpc3Logger.logINFO("Current value: " + FileEntry.TargetTable,false);	
 				if (!TableName.equals(FileEntry.TargetTable)) {
 					continue;
@@ -304,13 +303,13 @@ public class LoadAppLogic {
 			// fails.
 			if (!TableExists) {
 				twpc3Logger.logINFO("ERROR: No table" + TableName + " found in FileEntries!",false);				
-				return false;
+				return new Boolean_UUID(false, UUID.randomUUID());
 			}
 			twpc3Logger.logINFO("--- End Iteration ---",false);
 		}
 		twpc3Logger.exitScope();
 		twpc3Logger.logINFO("=== End of loop ===",false);
-		return true;
+		return new Boolean_UUID(true, UUID.randomUUID());
 	}
 
 	/**
@@ -321,12 +320,12 @@ public class LoadAppLogic {
 	 * @return True if the FilePath in the given FileEntry exists on disk. False
 	 *         otherwise.
 	 */
-	public static boolean IsExistsCSVFile(CSVFileEntry FileEntry) {
+	public static Boolean_UUID IsExistsCSVFile(CSVFileEntry FileEntry) {
 		twpc3Logger.logINFO("1. Checking if the given FileEntry " + FileEntry.FilePath + " exists",false);	
 		File CSVFileInfo = new File(FileEntry.FilePath);
 		if(!CSVFileInfo.exists()) { 
 			twpc3Logger.logINFO("ERROR: FileEntry " + FileEntry.FilePath + " doesn't exist!",false);	
-			return false;
+			return new Boolean_UUID(false, UUID.randomUUID());
 		}
 		File CSVFileHeaderInfo = new File(FileEntry.HeaderPath);
 		twpc3Logger.logINFO("2. Checking if the given FileEntry header file " + FileEntry.HeaderPath + " exists",false);	
@@ -334,7 +333,7 @@ public class LoadAppLogic {
 			twpc3Logger.logINFO("ERROR: FileEntry header file " + FileEntry.HeaderPath + " doesn't exist!",false);	
 		}
 
-		return CSVFileHeaderInfo.exists();
+		return new Boolean_UUID(CSVFileHeaderInfo.exists(), UUID.randomUUID());
 	}
 
 	/**
@@ -375,7 +374,7 @@ public class LoadAppLogic {
 	 * @return True if the column headers present in the CSV File are the same
 	 *         as the expected table columns. False otherwise.
 	 */
-	public static boolean IsMatchCSVFileColumnNames(CSVFileEntry FileEntry) {
+	public static Boolean_UUID IsMatchCSVFileColumnNames(CSVFileEntry FileEntry) {
 		twpc3Logger.logINFO("1. Checking whether the table" + FileEntry.TargetTable + " matches one of the expected tables",true); 
 		// determine expected columns
 		List<String> ExpectedColumns = null;
@@ -391,7 +390,7 @@ public class LoadAppLogic {
 		} else {
 			twpc3Logger.logINFO("ERROR: Table is not one of the expected kinds!",false); 
 			// none of the table types match...invalid
-			return false;
+			return new Boolean_UUID(false, UUID.randomUUID());
 		}
 
 		twpc3Logger.logINFO("2. Testing whether the expected and present column name counts are the same", true); 
@@ -400,21 +399,21 @@ public class LoadAppLogic {
 		// test if the expected and present column name counts are the same
 		if (ExpectedColumns.size() != FileEntry.ColumnNames.size()) {
 			twpc3Logger.logINFO("ERROR: Column count mismatch!", false);
-			return false;
+			return new Boolean_UUID(false, UUID.randomUUID());
 		}
 
 		// test of all expected names exist in the columns present
-		twpc3Logger.logINFO("3. Testing whether all expected names exist in the columns present", true); 
+		twpc3Logger.logINFO("3. Testing whether all expected names exist in the columns present", false); 
 
 		for (String ColumnName : ExpectedColumns) {
 			if (!FileEntry.ColumnNames.contains(ColumnName)) {
 				twpc3Logger.logINFO("ERROR: Column " + ColumnName + " missing!", false);
-				return false; // mismatch
+				return new Boolean_UUID(false, UUID.randomUUID()); // mismatch
 			}
 		}
 
 		// all columns match
-		return true;
+		return new Boolean_UUID(true, UUID.randomUUID());
 	}
 
 	// ////////////////////////////////////////////////////////////
@@ -426,18 +425,17 @@ public class LoadAppLogic {
 	 * @return
 	 * @throws Exception
 	 */
-	public static DatabaseEntry CreateEmptyLoadDB(String JobID)
+	public static DatabaseEntry CreateEmptyLoadDB(String_UUID JobID)
 	throws Exception {
 
 		// initialize database entry for storing database properties
 		DatabaseEntry DBEntry = new DatabaseEntry();
-		twpc3Logger.logINFO("1. Initialize database entry" + DBEntry + "for storing database properties", true);
 
-		DBEntry.DBName = JobID + "_LoadDB";
-		DBEntry.DBGuid = UUID.randomUUID().toString();
-		twpc3Logger.logINFO("Database Name: " + DBEntry.DBName, true);
-		twpc3Logger.logINFO("Database ID: " + DBEntry.DBGuid, false);
-
+		DBEntry.DBName = JobID.thisString + "_LoadDB";
+		DBEntry.thisUUID = UUID.randomUUID();
+		twpc3Logger.logINFO("1. Initialize DatabaseEntry " + DBEntry.thisUUID + " for storing database properties", true);
+		twpc3Logger.logINFO("Database Name: " + DBEntry.DBName, false);
+		
 		// initialize Sql Connection String to sql server
 		twpc3Logger.logINFO("2. Initialize Sql Connection String to sql server", true);
 
@@ -466,7 +464,7 @@ public class LoadAppLogic {
 
 		// update Sql Connection String to new create tables
 
-		twpc3Logger.logINFO("4. linking created connection string ConnStr to DBEntry instance " + DBEntry.DBGuid, false);
+		twpc3Logger.logINFO("4. linking created connection string ConnStr to DBEntry instance " + DBEntry.thisUUID, false);
 		DBEntry.ConnectionString = ConnStr.toString();
 
 		// create tables
@@ -506,7 +504,7 @@ public class LoadAppLogic {
 	 *            File to be bulk loaded into database table
 	 * @return True if the bulk load ran without exceptions. False otherwise.
 	 */
-	public static boolean LoadCSVFileIntoTable(DatabaseEntry DBEntry,
+	public static Boolean_UUID LoadCSVFileIntoTable(DatabaseEntry DBEntry,
 			CSVFileEntry FileEntry) throws Exception {
 		Connection SqlConn = null;
 		try {
@@ -535,7 +533,7 @@ public class LoadAppLogic {
 		} catch (Exception ex) {
 			twpc3Logger.logINFO("ERROR: Bulk insert SQL command failed!", false);
 			// bulk insert failed
-			return false;
+			return new Boolean_UUID(false, UUID.randomUUID());
 		} finally {
 			if (SqlConn != null) {
 				twpc3Logger.logINFO("3. Disconnecting from database", false);
@@ -544,7 +542,7 @@ public class LoadAppLogic {
 		}
 
 		// bulk insert success
-		return true;
+		return new Boolean_UUID(true, UUID.randomUUID());
 	}
 
 	/**
@@ -552,7 +550,7 @@ public class LoadAppLogic {
 	 * @param FileEntry
 	 * @return
 	 */
-	public static boolean UpdateComputedColumns(DatabaseEntry DBEntry,
+	public static Boolean_UUID UpdateComputedColumns(DatabaseEntry DBEntry,
 			CSVFileEntry FileEntry) throws Exception {
 		Connection SqlConn = null;
 		try {
@@ -599,13 +597,13 @@ public class LoadAppLogic {
 			} else {
 				twpc3Logger.logINFO("ERROR: The table doesn't match any of the expected tables!", false);
 				// none of the table types matches...invalid
-				return false;
+				return new Boolean_UUID(false, UUID.randomUUID());
 			}
 
 		} catch (Exception ex) {
 			// update column failed
 			twpc3Logger.logINFO("ERROR: Column updating failed for " + FileEntry.TargetTable + "!", false);
-			return false;
+			return new Boolean_UUID(false, UUID.randomUUID());
 		} finally {
 			if (SqlConn != null) {
 				twpc3Logger.logINFO("3. Disconnecting from database", false);
@@ -613,7 +611,7 @@ public class LoadAppLogic {
 			}
 		}
 		// update column success
-		return true;
+		return new Boolean_UUID(true, UUID.randomUUID());
 	}
 
 	// ////////////////////////////////////////////////////////////
@@ -625,7 +623,7 @@ public class LoadAppLogic {
 	 * @param FileEntry
 	 * @return
 	 */
-	public static boolean IsMatchTableRowCount(DatabaseEntry DBEntry,
+	public static Boolean_UUID IsMatchTableRowCount(DatabaseEntry DBEntry,
 			CSVFileEntry FileEntry) throws Exception {
 		// does the number of rows expected match the number of rows loaded
 		Connection SqlConn = null;
@@ -648,10 +646,10 @@ public class LoadAppLogic {
 				if(RowCount != FileEntry.RowCount) {
 					twpc3Logger.logINFO("ERROR: Row count mismatch detected!", false);
 				} 
-				return RowCount == FileEntry.RowCount;
+				return new Boolean_UUID(RowCount == FileEntry.RowCount, UUID.randomUUID());
 			} else {
 				twpc3Logger.logINFO("ERROR: No row count returned from SQL command!", false);
-				return false; // error case!
+				return new Boolean_UUID(false, UUID.randomUUID()); // error case!
 			}
 		} finally {
 			if (SqlConn != null) {
@@ -667,7 +665,7 @@ public class LoadAppLogic {
 	 * @param FileEntry
 	 * @return
 	 */
-	public static boolean IsMatchTableColumnRanges(DatabaseEntry DBEntry,
+	public static Boolean_UUID IsMatchTableColumnRanges(DatabaseEntry DBEntry,
 			CSVFileEntry FileEntry) throws Exception {
 		// determine expected column ranges
 		List<LoadConstants.ColumnRange> ExpectedColumnRanges = null;
@@ -689,7 +687,7 @@ public class LoadAppLogic {
 		} else {
 			// none of the table types matches...invalid
 			twpc3Logger.logINFO("ERROR: Table isn't any of the expected tables, and is therefore invalid", false);
-			return false;
+			return new Boolean_UUID(false, UUID.randomUUID());
 		}
 
 		// connect to database instance
@@ -721,11 +719,11 @@ public class LoadAppLogic {
 					twpc3Logger.logINFO("Error count: " + ErrorCount, true);
 					if (ErrorCount > 0) {
 						twpc3Logger.logINFO("ERROR: Range error found!", true);
-						return false; // found a range error
+						return new Boolean_UUID(false, UUID.randomUUID()); // found a range error
 					}
 				} else {
 					twpc3Logger.logINFO("ERROR: No range value returned by SQL command!", true);
-					return false; // error case
+					return new Boolean_UUID(false, UUID.randomUUID()); // error case
 				}
 
 			}
@@ -737,7 +735,7 @@ public class LoadAppLogic {
 			}
 		}
 
-		return true; // no range errors found
+		return new Boolean_UUID(true, UUID.randomUUID()); // no range errors found
 	}
 
 	/**
