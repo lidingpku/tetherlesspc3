@@ -3,6 +3,7 @@ package info.ipaw.pc3.PSLoadWorkflow;
 import java.sql.*;
 import java.util.*;
 import java.io.*;
+import java.util.UUID;
 
 /***
  * LoadAppLogic
@@ -18,11 +19,11 @@ public class LoadAppLogic {
 	private static final String SQL_PASSWORD = "pc3_load-2009";
 	private static long START_TIME = 0;
 
-	
+
 	public static void setStartTime(long time) {
 		START_TIME = time;
 	}
-	
+
 	// Initialize Apache Derby JDBC Driver
 	private static final String DERBY_DRIVER = "org.apache.derby.jdbc.EmbeddedDriver";
 	// private static final String DERBY_DRIVER = "org.apache.derby.jdbc.ClientDriver"
@@ -37,9 +38,32 @@ public class LoadAppLogic {
 	// ////////////////////////////////////////////////////////////
 	// / Helper data structures ///////////////////////////////////
 	// ////////////////////////////////////////////////////////////
+	
+	public static class String_UUID {
+		public String thisString;
+		public UUID thisUUID;
+		
+		String_UUID (String thisString, UUID thisUUID) {
+			this.thisString = thisString;
+			this.thisUUID = thisUUID;
+		}
+	}
+	
+	public static class Boolean_UUID {
+		public boolean thisBoolean;
+		public UUID thisUUID;
+		
+		Boolean_UUID (boolean thisBoolean, UUID thisUUID) {
+			this.thisBoolean = thisBoolean;
+			this.thisUUID = thisUUID;
+		}
+	}
+	
+	
+	
 	/***
-     * 
-     */
+	 * 
+	 */
 	public static class CSVFileEntry {
 		public String FilePath;
 		public String HeaderPath;
@@ -47,56 +71,69 @@ public class LoadAppLogic {
 		public String TargetTable;
 		public String Checksum;
 		public List<String> ColumnNames;
-    
-    public String getFilePath() {
-      return FilePath;
-    }
-    
-    public void setFilePath(String filePath) {
-      FilePath = filePath;
-    }
-    
-    public String getHeaderPath() {
-      return HeaderPath;
-    }
-    
-    public void setHeaderPath(String headerPath) {
-      HeaderPath = headerPath;
-    }
-    
-    public int getRowCount() {
-      return RowCount;
-    }
-    
-    public void setRowCount(int rowCount) {
-      RowCount = rowCount;
-    }
-    
-    public String getTargetTable() {
-      return TargetTable;
-    }
-    
-    public void setTargetTable(String targetTable) {
-      TargetTable = targetTable;
-    }
-    
-    public String getChecksum() {
-      return Checksum;
-    }
-    
-    public void setChecksum(String checksum) {
-      Checksum = checksum;
-    }
-    
-    public List<String> getColumnNames() {
-      return ColumnNames;
-    }
-    
-    public void setColumnNames(List<String> columnNames) {
-      ColumnNames = columnNames;
-    }
+		public UUID thisUUID;
+
+		public String getFilePath() {
+			return FilePath;
+		}
+
+		public void setFilePath(String filePath) {
+			FilePath = filePath;
+		}
+
+		public String getHeaderPath() {
+			return HeaderPath;
+		}
+
+		public void setHeaderPath(String headerPath) {
+			HeaderPath = headerPath;
+		}
+
+		public int getRowCount() {
+			return RowCount;
+		}
+
+		public void setRowCount(int rowCount) {
+			RowCount = rowCount;
+		}
+
+		public String getTargetTable() {
+			return TargetTable;
+		}
+
+		public void setTargetTable(String targetTable) {
+			TargetTable = targetTable;
+		}
+
+		public String getChecksum() {
+			return Checksum;
+		}
+
+		public void setChecksum(String checksum) {
+			Checksum = checksum;
+		}
+
+		public List<String> getColumnNames() {
+			return ColumnNames;
+		}
+
+		public void setColumnNames(List<String> columnNames) {
+			ColumnNames = columnNames;
+		}
 	}
 
+	
+	public static class CSVFileEntryList {
+		public List<CSVFileEntry> thisCSVFileEntryList;
+		public UUID thisUUID;
+		
+		CSVFileEntryList (List<CSVFileEntry> thisCSVFileEntryList, UUID thisUUID) {
+			this.thisCSVFileEntryList = thisCSVFileEntryList;
+			this.thisUUID = thisUUID;			
+		}
+		
+	}
+	
 	/***
 	 * 
 	 */
@@ -104,30 +141,31 @@ public class LoadAppLogic {
 		public String DBGuid;
 		public String DBName;
 		public String ConnectionString;
-    
-    public String getDBGuid() {
-      return DBGuid;
-    }
-    
-    public void setDBGuid(String guid) {
-      DBGuid = guid;
-    }
-    
-    public String getDBName() {
-      return DBName;
-    }
-    
-    public void setDBName(String name) {
-      DBName = name;
-    }
-    
-    public String getConnectionString() {
-      return ConnectionString;
-    }
-    
-    public void setConnectionString(String connectionString) {
-      ConnectionString = connectionString;
-    }
+		public UUID thisUUID;
+		
+		public String getDBGuid() {
+			return DBGuid;
+		}
+
+		public void setDBGuid(String guid) {
+			DBGuid = guid;
+		}
+
+		public String getDBName() {
+			return DBName;
+		}
+
+		public void setDBName(String name) {
+			DBName = name;
+		}
+
+		public String getConnectionString() {
+			return ConnectionString;
+		}
+
+		public void setConnectionString(String connectionString) {
+			ConnectionString = connectionString;
+		}
 	}
 
 	// ////////////////////////////////////////////////////////////
@@ -144,28 +182,22 @@ public class LoadAppLogic {
 	 *         otherwise.
 	 */
 	public static boolean IsCSVReadyFileExists(String CSVRootPath) {
-		System.out.println();	
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "-------------------------------------");		
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "Starting IsCSVReadyFileExists process");
+
 		// 1. Check if parent directory exists.
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "Verifying CSV Root Path exists: " + CSVRootPath);
+		twpc3Logger.logINFO("1. Checking if parent directory exists: " + CSVRootPath,false);
 		File RootDirInfo = new File(CSVRootPath);
 		if (!RootDirInfo.exists()) {
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "CSV Root Path does not exist");
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "IsCSVReadyFileExists evaluates to false");			
+			twpc3Logger.logINFO("ERROR: Parent directory doesn't exist!", false);
 			return false;
 		}
 
 		// 2. Check if CSV Ready file exists. We assume a static name for the
 		// ready file.
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "Verifying csv_ready.csv exists");		
+		twpc3Logger.logINFO("2. Now checking if CSV Ready file exists. We assume name csv_ready.csv for the ready file. ",false);
 		File ReadyFileInfo = new File(CSVRootPath, "csv_ready.csv");
 		if(!ReadyFileInfo.exists())
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "csv_ready.csv does not exist");
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "Exiting IsCSVReadyFileExists process");
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "-------------------------------------");		
-		System.out.println();	
-		
+			twpc3Logger.logINFO("ERROR: csv_ready.csv not found at " + CSVRootPath + "!", false);
+
 		return ReadyFileInfo.exists();
 	}
 
@@ -174,36 +206,34 @@ public class LoadAppLogic {
 	 * @return
 	 */
 	public static List<CSVFileEntry> ReadCSVReadyFile(String CSVRootPath)
-			throws IOException {
+	throws IOException {
 
-		System.out.println();	
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "-------------------------------------");		
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "Starting ReadCSVReadyFile process");
 		// 1. Initialize output list of file entries
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "Initializing output list of file entries");
+		twpc3Logger.logINFO("1. Initializing output list of file entries: List<CSVFileEntry> CSVFileEntryList",false);
 		List<CSVFileEntry> CSVFileEntryList = new ArrayList<CSVFileEntry>();
 
 		// 2. Open input stream to read from CSV Ready File
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "Opening input stream to read from csv_ready.csv");
+		twpc3Logger.logINFO("2. Opening input stream ReadyFileStream to read from CSV Ready File: " + CSVRootPath+"csv_ready.csv",false);
 		File CSVReadyFile = new File(CSVRootPath, "csv_ready.csv");
 		BufferedReader ReadyFileStream = 
 			new BufferedReader(new InputStreamReader(new FileInputStream(CSVReadyFile)));
 
 		// 3. Read each line in CSV Ready file and split the lines into
 		// individual columns separated by commas
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "Preparing to read each line in from csv_ready.csv (<FileName>,<NumRows>,<TargetTable>,<MD5Checksum>)");
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "Entering loop");
+		twpc3Logger.logINFO("3. Reading each line in CSV Ready file and split the lines into individual columns separated by commas",false);
+		twpc3Logger.logINFO("=== Loop over each line in ReadyFileStream ===",false);
+		twpc3Logger.enterScope();
 		String ReadyFileLine;
 		while ((ReadyFileLine = ReadyFileStream.readLine()) != null) {
-
+			twpc3Logger.logINFO("--- Start Iteration ---",false);
 			// 3.a. Expect each line in the CSV ready file to be of the format:
 			// <FileName>,<NumRows>,<TargetTable>,<MD5Checksum>
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "Splitting line " + ReadyFileLine);
-			
+			twpc3Logger.logINFO("3.a. Split current line (of form <FileName>,<NumRows>,<TargetTable>,<MD5Checksum>) by commas",true);
+			twpc3Logger.logINFO("CURRENT LINE: " + ReadyFileLine, false);
 			String[] ReadyFileLineTokens = ReadyFileLine.split(",");
 
 			// 3.b. Create an empty FileEntry and populate it with the columns
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "Creating CSVFileEntry for this line, based on the four parameters");
+			twpc3Logger.logINFO("3.b. Creating an empty FileEntry, and populating it with the four values",true);
 			CSVFileEntry FileEntry = new CSVFileEntry();
 			FileEntry.FilePath = 
 				CSVRootPath + File.separator + ReadyFileLineTokens[0].trim(); // column 1
@@ -214,15 +244,15 @@ public class LoadAppLogic {
 			FileEntry.Checksum = ReadyFileLineTokens[3].trim(); // column 4
 
 			// 3.c. Add file entry to output list
+			twpc3Logger.logINFO("3.c. Add new file entry to output list CSVFileEntryList",false);
 			CSVFileEntryList.add(FileEntry);
+			twpc3Logger.logINFO("--- End Iteration ---",false);
 		}
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "Leaving loop");
+		twpc3Logger.exitScope();
+		twpc3Logger.logINFO("=== End of loop ===",false);
 		// 4. Close input stream and return output file entry list
+		twpc3Logger.logINFO("4. Close input stream ReadyFileStream and return output file entry list CSVFileEntryList",false);
 		ReadyFileStream.close();
-		
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "Exiting ReadCSVReadyFile process");
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "-------------------------------------");		
-		System.out.println();	
 		return CSVFileEntryList;
 	}
 
@@ -233,51 +263,53 @@ public class LoadAppLogic {
 	 * @return
 	 */
 	public static boolean IsMatchCSVFileTables(List<CSVFileEntry> FileEntries) {
-		System.out.println();	
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "-------------------------------------");		
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "Starting IsMatchCSVFileTables process");
 		// check if the file count and the expected number of tables match
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "Verifying the file count and the expected number of tables match");
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "Expected: " + LoadConstants.EXPECTED_TABLES.size() + " Actual: " + FileEntries.size());
+		twpc3Logger.logINFO("1. Checking if the file count and the expected number of tables match",true);
+		twpc3Logger.logINFO("ACTUAL (from CSV Ready file): " + FileEntries.size() + " EXPECTED (LoadConstants.EXPECTED_TABLES.size()): " + LoadConstants.EXPECTED_TABLES.size(),false);
+
 		if (LoadConstants.EXPECTED_TABLES.size() != FileEntries.size()) {
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "Count mismatch detected");
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "IsMatchCSVFileTables evaluates to false");	
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "-------------------------------------");		
-			System.out.println();
+			twpc3Logger.logINFO("ERROR: File count mismatch!", false);
 			return false;
 		}
 
 		// for each expected table name, check if it is present in the list of
 		// file entries
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "Now checking whether each expected table name is present in the list of file entries");
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "Entering loop");
+
+		twpc3Logger.logINFO("2. For each expected table name (LoadConstants.EXPECTED_TABLES), checking if it is present in the list of found FileEntries",true);
+
+		twpc3Logger.logINFO("=== Loop over each value in LoadConstants.EXPECTED_TABLES ===",false);
+		twpc3Logger.enterScope();
 		for (String TableName : LoadConstants.EXPECTED_TABLES) {
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tCurrent iteration on: " + TableName);
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tEntering loop");
+			twpc3Logger.logINFO("--- Start Iteration ---",false);
+			twpc3Logger.logINFO("Current value: " + TableName,false);			
 			boolean TableExists = false;
+			twpc3Logger.logINFO("=== Loop over each value in FileEntries ===",false);
+			twpc3Logger.enterScope();
 			for (CSVFileEntry FileEntry : FileEntries) {
-				System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\t\tCurrent iteration on: " + FileEntry.TargetTable);
-				if (!TableName.equals(FileEntry.TargetTable)) continue;
-				else System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\t\tTarget table found");
-				
+				twpc3Logger.logINFO("Current value: " + FileEntry.TargetTable,false);	
+				if (!TableName.equals(FileEntry.TargetTable)) {
+					continue;
+				}
+				else {
+					twpc3Logger.logINFO("Match in FileEntries found!",false);
+				}
+
 				TableExists = true; // found a match
 				break;
 			}
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tExiting loop");			
+			twpc3Logger.exitScope();
+			twpc3Logger.logINFO("=== End of loop ===",false);
+
 			// if the table name did not exist in list of CSV files, this check
 			// fails.
 			if (!TableExists) {
-				System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "Target table did not exist in list of CSV files");
-				System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "IsMatchCSVFileTables evaluates to false");	
-				System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "-------------------------------------");		
-				System.out.println();
+				twpc3Logger.logINFO("ERROR: No table" + TableName + " found in FileEntries!",false);				
 				return false;
 			}
+			twpc3Logger.logINFO("--- End Iteration ---",false);
 		}
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "Exiting loop");
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "Exiting IsMatchCSVFileTables process");
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "-------------------------------------");		
-		System.out.println();
+		twpc3Logger.exitScope();
+		twpc3Logger.logINFO("=== End of loop ===",false);
 		return true;
 	}
 
@@ -290,28 +322,17 @@ public class LoadAppLogic {
 	 *         otherwise.
 	 */
 	public static boolean IsExistsCSVFile(CSVFileEntry FileEntry) {
-		System.out.println();	
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\t-------------------------------------");		
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tStarting IsExistsCSVFile process");
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tChecking if the given FileEntry " + FileEntry.FilePath + " exists");
-	
+		twpc3Logger.logINFO("1. Checking if the given FileEntry " + FileEntry.FilePath + " exists",false);	
 		File CSVFileInfo = new File(FileEntry.FilePath);
 		if(!CSVFileInfo.exists()) { 
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tGiven FileEntry does not exist");
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tIsExistsCSVFile evaluates to false");	
+			twpc3Logger.logINFO("ERROR: FileEntry " + FileEntry.FilePath + " doesn't exist!",false);	
 			return false;
 		}
 		File CSVFileHeaderInfo = new File(FileEntry.HeaderPath);
-
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tLooking up header info at " + FileEntry.HeaderPath);
+		twpc3Logger.logINFO("2. Checking if the given FileEntry header file " + FileEntry.HeaderPath + " exists",false);	
 		if(!CSVFileHeaderInfo.exists()) {
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tHeader info does not exist");
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tIsExistsCSVFile evaluates to false");				
+			twpc3Logger.logINFO("ERROR: FileEntry header file " + FileEntry.HeaderPath + " doesn't exist!",false);	
 		}
-		
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tExiting IsExistsCSVFile process");
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\t-------------------------------------");	
-		System.out.println();
 
 		return CSVFileHeaderInfo.exists();
 	}
@@ -322,12 +343,9 @@ public class LoadAppLogic {
 	 * @throws Exception
 	 */
 	public static CSVFileEntry ReadCSVFileColumnNames(CSVFileEntry FileEntry)
-			throws Exception {
-		System.out.println();	
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\t-------------------------------------");		
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tStarting ReadCSVFileColumnNames process");
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tReading header information for " + FileEntry.FilePath);
+	throws Exception {
 		// 2. Read the header line of the CSV File.
+		twpc3Logger.logINFO("1. Read the header line of the CSV File " + FileEntry.HeaderPath,false);  
 		BufferedReader CSVFileReader = 
 			new BufferedReader(new InputStreamReader(new FileInputStream(FileEntry.HeaderPath)));
 		String HeaderRow = CSVFileReader.readLine();
@@ -335,18 +353,16 @@ public class LoadAppLogic {
 		// 3. Extract the comma-separated columns names of the CSV File from its
 		// header line.
 		// Strip empty spaces around column names.
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tProcessing header line " + HeaderRow);
+		twpc3Logger.logINFO("2. Split header line by commas, and adding each to list of colum names in FileEntry.ColumnNames",true);
+		twpc3Logger.logINFO("CURRENT LINE: " + HeaderRow, false);
+
 		String[] ColumnNames = HeaderRow.split(",");
 		FileEntry.ColumnNames = new ArrayList<String>();
 		for (String ColumnName : ColumnNames) {
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\t\tAdding column " + ColumnName.trim() + " to FileEntry");
 			FileEntry.ColumnNames.add(ColumnName.trim());
 		}
 
 		CSVFileReader.close();
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tExiting ReadCSVFileColumnNames process");		
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\t-------------------------------------");
-		System.out.println();	
 		return FileEntry;
 	}
 
@@ -360,51 +376,43 @@ public class LoadAppLogic {
 	 *         as the expected table columns. False otherwise.
 	 */
 	public static boolean IsMatchCSVFileColumnNames(CSVFileEntry FileEntry) {
-		System.out.println();	
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\t-------------------------------------");		
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tStarting IsMatchCSVFileColumnNames process");
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tChecking whether the table" + FileEntry.TargetTable + " matches one of the expected tables");
+		twpc3Logger.logINFO("1. Checking whether the table" + FileEntry.TargetTable + " matches one of the expected tables",true); 
 		// determine expected columns
 		List<String> ExpectedColumns = null;
 		if ("P2Detection".equalsIgnoreCase(FileEntry.TargetTable)) {
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tIt is a P2Detection table");		
+			twpc3Logger.logINFO("It is a P2Detection table",false); 
 			ExpectedColumns = LoadConstants.EXPECTED_DETECTION_COLS;
 		} else if ("P2FrameMeta".equalsIgnoreCase(FileEntry.TargetTable)) {
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tIt is a P2FrameMeta table");		
+			twpc3Logger.logINFO("It is a P2FrameMeta table",false); 
 			ExpectedColumns = LoadConstants.EXPECTED_FRAME_META_COLS;
 		} else if ("P2ImageMeta".equalsIgnoreCase(FileEntry.TargetTable)) {
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tIt is a P2ImageMeta table");		
+			twpc3Logger.logINFO("It is a P2ImageMeta table",false); 
 			ExpectedColumns = LoadConstants.EXPECTED_IMAGE_META_COLS;
 		} else {
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tThe table doesn't match any of the expected tables, and is therefore invalid");
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tIsMatchCSVFileColumnNames evaluates to false");	
+			twpc3Logger.logINFO("ERROR: Table is not one of the expected kinds!",false); 
 			// none of the table types match...invalid
 			return false;
 		}
 
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tNow, testing whether the expected and present column name counts are the same");
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tExpected: " + ExpectedColumns.size() + " Present: " + FileEntry.ColumnNames.size());
+		twpc3Logger.logINFO("2. Testing whether the expected and present column name counts are the same", true); 
+		twpc3Logger.logINFO("ACTUAL (Column count from FileEntry): " + FileEntry.ColumnNames.size() + " EXPECTED (size of " + FileEntry.TargetTable +" table): " + LoadConstants.EXPECTED_TABLES.size(),false);
 
 		// test if the expected and present column name counts are the same
 		if (ExpectedColumns.size() != FileEntry.ColumnNames.size()) {
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tColumn count mismatch detected");
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tIsMatchCSVFileColumnNames evaluates to false");				
+			twpc3Logger.logINFO("ERROR: Column count mismatch!", false);
 			return false;
 		}
 
 		// test of all expected names exist in the columns present
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tNow, verifying that all expected names exist in the columns present");
+		twpc3Logger.logINFO("3. Testing whether all expected names exist in the columns present", true); 
+
 		for (String ColumnName : ExpectedColumns) {
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\t\tChecking for column name " + ColumnName);
 			if (!FileEntry.ColumnNames.contains(ColumnName)) {
-				System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\t\tThis column name wasn't found");
-				System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tIsMatchCSVFileColumnNames evaluates to false");					
+				twpc3Logger.logINFO("ERROR: Column " + ColumnName + " missing!", false);
 				return false; // mismatch
 			}
 		}
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tExiting ReadCSVFileColumnNames process");		
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\t-------------------------------------");
-		System.out.println();	
+
 		// all columns match
 		return true;
 	}
@@ -419,23 +427,20 @@ public class LoadAppLogic {
 	 * @throws Exception
 	 */
 	public static DatabaseEntry CreateEmptyLoadDB(String JobID)
-			throws Exception {
-		System.out.println();	
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "-------------------------------------");		
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "Starting CreateEmptyLoadDB process");
-		
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "Initializing database entry for storing database properties");
-		
+	throws Exception {
+
 		// initialize database entry for storing database properties
 		DatabaseEntry DBEntry = new DatabaseEntry();
+		twpc3Logger.logINFO("1. Initialize database entry" + DBEntry + "for storing database properties", true);
+
 		DBEntry.DBName = JobID + "_LoadDB";
 		DBEntry.DBGuid = UUID.randomUUID().toString();
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "Database Name: " + DBEntry.DBName);
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "Database ID: " + DBEntry.DBGuid);
+		twpc3Logger.logINFO("Database Name: " + DBEntry.DBName, true);
+		twpc3Logger.logINFO("Database ID: " + DBEntry.DBGuid, false);
 
 		// initialize Sql Connection String to sql server
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "Initializing Sql Connection String to sql server");
-		
+		twpc3Logger.logINFO("2. Initialize Sql Connection String to sql server", true);
+
 		StringBuilder ConnStr = new StringBuilder(SQL_SERVER);
 		ConnStr.append(";databaseName=");
 		ConnStr.append(DBEntry.DBName);
@@ -443,53 +448,51 @@ public class LoadAppLogic {
 		ConnStr.append(SQL_USER);
 		ConnStr.append(";password=");
 		ConnStr.append(SQL_PASSWORD);
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + ConnStr.toString());
-		
+		twpc3Logger.logINFO("ConnStr: " + ConnStr.toString(), false);
+
 		// Create empty database instance
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "Creating empty database instance");
+		twpc3Logger.logINFO("3. Create empty database instance on Sql server", false);
 		Connection SqlConn = null;
 		try {
 			String CreateDBConnStr = ConnStr.toString() + ";create=true";
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "Connecting using string " + CreateDBConnStr);
+			twpc3Logger.logINFO("3a. Connecting using string " + CreateDBConnStr, false);
 			SqlConn = DriverManager.getConnection(CreateDBConnStr);
 		} finally {
 			if (SqlConn != null) {
-				System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "Disconnecting from database");				
+				twpc3Logger.logINFO("3b. Disconnecting from database", false);
 				SqlConn.close();
 			}
 		}
 
 		// update Sql Connection String to new create tables
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "Adding created connection string to DBEntry instance " + DBEntry.DBGuid);
+
+		twpc3Logger.logINFO("4. linking created connection string ConnStr to DBEntry instance " + DBEntry.DBGuid, false);
 		DBEntry.ConnectionString = ConnStr.toString();
 
 		// create tables
 		SqlConn = null;
 
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "Now, creating tables for each of the three expected tables");
+		twpc3Logger.logINFO("5. creating tables on Sql server ", false);
 		try {
 			SqlConn = DriverManager.getConnection(DBEntry.ConnectionString);
 
 			// Create P2 Table
 			Statement SqlCmd = SqlConn.createStatement();
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "Creating P2 Detection table");
+			twpc3Logger.logINFO("5a. Creating P2 Detection table", false);
 			SqlCmd.executeUpdate(LoadSql.CREATE_DETECTION_TABLE);
 			// Create P2FrameMeta Table
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "Creating P2 Frame Metadata table");
+			twpc3Logger.logINFO("5b. Creating P2 Frame Metadata table", false);
 			SqlCmd.executeUpdate(LoadSql.CREATE_FRAME_META_TABLE);
 			// Create P2ImageMeta Table
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "Creating P2 Image Metadata table");
+			twpc3Logger.logINFO("5c. Creating P2 Image Metadata table", false);
 			SqlCmd.executeUpdate(LoadSql.CREATE_IMAGE_META_TABLE);
 
 		} finally {
 			if (SqlConn != null) {
-				System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "Disconnecting from database");	
+				twpc3Logger.logINFO("5d. Disconnecting from database", false);
 				SqlConn.close();
 			}
 		}
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "Exiting CreateEmptyLoadDB process");		
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "-------------------------------------");
-		System.out.println();	
 		return DBEntry;
 	}
 
@@ -505,17 +508,14 @@ public class LoadAppLogic {
 	 */
 	public static boolean LoadCSVFileIntoTable(DatabaseEntry DBEntry,
 			CSVFileEntry FileEntry) throws Exception {
-		System.out.println();	
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\t-------------------------------------");		
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tStarting LoadCSVFileIntoTable process");
 		Connection SqlConn = null;
 		try {
 			// connect to database instance
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tConnecting to database instance " + DBEntry.ConnectionString);
+			twpc3Logger.logINFO("1. Connecting to Sql server through DatabaseEntry ConnectionString", false);
 			SqlConn = DriverManager.getConnection(DBEntry.ConnectionString);
 
 			// build bulk insert SQL command
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tBuilding bulk insert SQL command");	
+			twpc3Logger.logINFO("2. Inserting CSVFileEntry into Sql database via bulk insert SQL command", false);
 
 			CallableStatement SqlCmd = 
 				SqlConn.prepareCall("CALL SYSCS_UTIL.SYSCS_IMPORT_TABLE (?,?,?,?,?,?,?)");
@@ -527,25 +527,23 @@ public class LoadAppLogic {
 			SqlCmd.setString(5, null);
 			SqlCmd.setString(6, null);
 			SqlCmd.setShort(7, (short)0);
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\t"+SqlCmd);	
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tExecuting bulk insert command");	
+
 
 			// execute bulk insert command
 			SqlCmd.execute();
 
 		} catch (Exception ex) {
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tBulk insert failed");	
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tLoadCSVFileIntoTable evaluates to false");	
+			twpc3Logger.logINFO("ERROR: Bulk insert SQL command failed!", false);
 			// bulk insert failed
 			return false;
 		} finally {
-			if (SqlConn != null) SqlConn.close();
+			if (SqlConn != null) {
+				twpc3Logger.logINFO("3. Disconnecting from database", false);
+				SqlConn.close();
+			}
 		}
 
 		// bulk insert success
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tExiting LoadCSVFileIntoTable process");		
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\t-------------------------------------");
-		System.out.println();	
 		return true;
 	}
 
@@ -556,65 +554,64 @@ public class LoadAppLogic {
 	 */
 	public static boolean UpdateComputedColumns(DatabaseEntry DBEntry,
 			CSVFileEntry FileEntry) throws Exception {
-		System.out.println();	
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\t-------------------------------------");		
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tStarting UpdateComputedColumns process");
 		Connection SqlConn = null;
 		try {
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tConnecting to database instance " + DBEntry.ConnectionString);
+			twpc3Logger.logINFO("1. Connecting to Sql server through DatabaseEntry ConnectionString", false);
 			SqlConn = DriverManager.getConnection(DBEntry.ConnectionString);
 
+			twpc3Logger.logINFO("2. Checking whether the table" + FileEntry.TargetTable + " matches one of the expected tables",true); 
 			if ("P2Detection".equalsIgnoreCase(FileEntry.TargetTable)) {
-				System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tFileEntry target table is a P2 Detection table");
+				twpc3Logger.logINFO("FileEntry target table is a P2 Detection table",true); 
+
 				// Update ZoneID
-				System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tUpdating ZoneID, with SQL command " + "UPDATE P2Detection SET zoneID = (\"dec\"+(90.0))/(0.0083333)");
+				twpc3Logger.logINFO("Updating ZoneID, with SQL command " + "UPDATE P2Detection SET zoneID = (\"dec\"+(90.0))/(0.0083333)", true);
 				Statement SqlCmd = SqlConn.createStatement();
 				SqlCmd.executeUpdate(
-						"UPDATE P2Detection SET zoneID = (\"dec\"+(90.0))/(0.0083333)");
+				"UPDATE P2Detection SET zoneID = (\"dec\"+(90.0))/(0.0083333)");
 
 				// Update cx
-				System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tUpdating cx, with SQL command " + "UPDATE P2Detection SET cx = (COS(RADIANS(\"dec\"))*COS(RADIANS(ra)))");
+				twpc3Logger.logINFO("Updating cx, with SQL command " + "UPDATE P2Detection SET cx = (COS(RADIANS(\"dec\"))*COS(RADIANS(ra)))", true);
 
 				SqlCmd.executeUpdate(
-						"UPDATE P2Detection SET cx = (COS(RADIANS(\"dec\"))*COS(RADIANS(ra)))");
+				"UPDATE P2Detection SET cx = (COS(RADIANS(\"dec\"))*COS(RADIANS(ra)))");
 
 				// Update cy
-				System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tUpdating cy, with SQL command " + "UPDATE P2Detection SET cy = COS(RADIANS(\"dec\"))*SIN(RADIANS(ra))");
+				twpc3Logger.logINFO("Updating cy, with SQL command " + "UPDATE P2Detection SET cy = COS(RADIANS(\"dec\"))*SIN(RADIANS(ra))", true);
 
 				SqlCmd.executeUpdate(
-						"UPDATE P2Detection SET cy = COS(RADIANS(\"dec\"))*SIN(RADIANS(ra))");
+				"UPDATE P2Detection SET cy = COS(RADIANS(\"dec\"))*SIN(RADIANS(ra))");
 
 				// Update cz
-				System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tUpdating cz, with SQL command " + "UPDATE P2Detection SET cz = (SIN(RADIANS(\"dec\")))");
+				twpc3Logger.logINFO("Updating cz, with SQL command " + "UPDATE P2Detection SET cz = (SIN(RADIANS(\"dec\")))", false);
 
-				
+
 				SqlCmd.executeUpdate(
-						"UPDATE P2Detection SET cz = (SIN(RADIANS(\"dec\")))");
-				
+				"UPDATE P2Detection SET cz = (SIN(RADIANS(\"dec\")))");
+
 			} else if ("P2FrameMeta".equalsIgnoreCase(FileEntry.TargetTable)) {
-				System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tFileEntry target table is a P2 Frame Metadata table");
-				System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tNo columns to be updated for the Frame Metadata table");				
+				twpc3Logger.logINFO("FileEntry target table is a P2 Frame Metadata table", true);
+				twpc3Logger.logINFO("No columns to be updated for the Frame Metadata table", false);				
 				// No columns to be updated for FrameMeta
 			} else if ("P2ImageMeta".equalsIgnoreCase(FileEntry.TargetTable)) {
-				System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tFileEntry target table is a P2 Image Metadata table");
-				System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tNo columns to be updated for the Image Metadata table");
+				twpc3Logger.logINFO("FileEntry target table is a P2 Image Metadata table", true);
+				twpc3Logger.logINFO("No columns to be updated for the Image Metadata table", false);
 				// No columns to be updated for ImageMeta
 			} else {
-				System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tThe table doesn't match any of the expected tables, and is therefore invalid");
-				System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tUpdateComputedColumns evaluates to false");	
+				twpc3Logger.logINFO("ERROR: The table doesn't match any of the expected tables!", false);
 				// none of the table types matches...invalid
 				return false;
 			}
 
 		} catch (Exception ex) {
 			// update column failed
+			twpc3Logger.logINFO("ERROR: Column updating failed for " + FileEntry.TargetTable + "!", false);
 			return false;
 		} finally {
-			if (SqlConn != null) SqlConn.close();
+			if (SqlConn != null) {
+				twpc3Logger.logINFO("3. Disconnecting from database", false);
+				SqlConn.close();
+			}
 		}
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tExiting UpdateComputedColumns process");		
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\t-------------------------------------");
-		System.out.println();
 		// update column success
 		return true;
 	}
@@ -630,48 +627,39 @@ public class LoadAppLogic {
 	 */
 	public static boolean IsMatchTableRowCount(DatabaseEntry DBEntry,
 			CSVFileEntry FileEntry) throws Exception {
-		System.out.println();	
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\t-------------------------------------");		
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tStarting IsMatchTableRowCount process");
 		// does the number of rows expected match the number of rows loaded
 		Connection SqlConn = null;
 		try {
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tConnecting to database instance " + DBEntry.ConnectionString);
+			twpc3Logger.logINFO("1. Connecting to Sql server through DatabaseEntry ConnectionString", false);
 			SqlConn = DriverManager.getConnection(DBEntry.ConnectionString);
 			Statement SqlCmd = SqlConn.createStatement();
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tExecuting row count command " + "SELECT COUNT(*) FROM " + FileEntry.TargetTable);
-			
+			twpc3Logger.logINFO("2. For FileEntry.TargetTable, Executing row count command " + "SELECT COUNT(*) FROM " + FileEntry.TargetTable, false);
+
 			// execute row count command
 			ResultSet Results = 
 				SqlCmd.executeQuery("SELECT COUNT(*) FROM " + FileEntry.TargetTable);
 			if (Results.next()) {
-				System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tChecking if row count matches expected row count");
-				
+				twpc3Logger.logINFO("3. Checking if row count matches expected row count", true);
+
 				// check if row count matches expected row count
 				int RowCount = (int) Results.getInt(1);
-				System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tRow count: " + RowCount + " Expected row count: " + FileEntry.RowCount);
+				twpc3Logger.logINFO("Row count on Sql server: " + RowCount + " Expected row count: " + FileEntry.RowCount, false);
 
 				if(RowCount != FileEntry.RowCount) {
-					System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tColumn count mismatch detected");
-					System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tIsMatchTableRowCount evaluates to false");	
-				} else {
-					System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tExiting IsMatchTableRowCount process");		
-					System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\t-------------------------------------");
-					System.out.println();
-				}
+					twpc3Logger.logINFO("ERROR: Row count mismatch detected!", false);
+				} 
 				return RowCount == FileEntry.RowCount;
 			} else {
-				System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tNo row count returned");
-				System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tIsMatchTableRowCount evaluates to false");	
+				twpc3Logger.logINFO("ERROR: No row count returned from SQL command!", false);
 				return false; // error case!
 			}
 		} finally {
 			if (SqlConn != null) {
-				
+				twpc3Logger.logINFO("4. Disconnecting from database", false);
 				SqlConn.close();
 			}
 		}
-		
+
 	}
 
 	/**
@@ -681,79 +669,74 @@ public class LoadAppLogic {
 	 */
 	public static boolean IsMatchTableColumnRanges(DatabaseEntry DBEntry,
 			CSVFileEntry FileEntry) throws Exception {
-		System.out.println();	
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\t-------------------------------------");		
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tStarting IsMatchTableColumnRanges process");
 		// determine expected column ranges
 		List<LoadConstants.ColumnRange> ExpectedColumnRanges = null;
+		twpc3Logger.logINFO("1. Checking whether the table" + FileEntry.TargetTable + " matches one of the expected tables",true); 
 		if ("P2Detection".equalsIgnoreCase(FileEntry.TargetTable)) {
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tFileEntry target table is a P2 Detection table");
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tGetting expected table column range: " + LoadConstants.EXPECTED_DETECTION_COL_RANGES);
+			twpc3Logger.logINFO("FileEntry target table is a P2 Detection table", true);
+			twpc3Logger.logINFO("Getting expected table column range: " + LoadConstants.EXPECTED_DETECTION_COL_RANGES, false);
 			ExpectedColumnRanges = LoadConstants.EXPECTED_DETECTION_COL_RANGES;
 		} else if ("P2FrameMeta".equalsIgnoreCase(FileEntry.TargetTable)) {
 			// No columns range values available for FrameMeta
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tFileEntry target table is a P2 Frame Metadata table");
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tNo columns range values available for P2 Frame Metadata");
+			twpc3Logger.logINFO("FileEntry target table is a P2 Frame Metadata table", true);
+			twpc3Logger.logINFO("No columns range values available for P2 Frame Metadata", false);
 			ExpectedColumnRanges = new ArrayList<LoadConstants.ColumnRange>();
 		} else if ("P2ImageMeta".equalsIgnoreCase(FileEntry.TargetTable)) {
 			// No columns range values available for ImageMeta
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tFileEntry target table is a P2 Image Metadata table");
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tNo columns range values available for P2 Image Metadata");
+			twpc3Logger.logINFO("FileEntry target table is a P2 Image Metadata table", true);
+			twpc3Logger.logINFO("No columns range values available for P2 Image Metadata", false);
 			ExpectedColumnRanges = new ArrayList<LoadConstants.ColumnRange>();
 		} else {
 			// none of the table types matches...invalid
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tThe table doesn't match any of the expected tables, and is therefore invalid");
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tIsMatchTableColumnRanges evaluates to false");	
+			twpc3Logger.logINFO("ERROR: Table isn't any of the expected tables, and is therefore invalid", false);
 			return false;
 		}
 
 		// connect to database instance
 		Connection SqlConn = null;
 		try {
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tConnecting to database instance " + DBEntry.ConnectionString);
+			twpc3Logger.logINFO("2. Connecting to Sql server through DatabaseEntry ConnectionString", false);
 			SqlConn = DriverManager.getConnection(DBEntry.ConnectionString);
 
 			// For each column in available list, test if rows in table fall
 			// outside expected range
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tNow, checking each column in the available list, and testing if rows in table fall outside expected range");
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tEntering loop");
+			twpc3Logger.logINFO("3. Checking each column in the available list, and testing if rows in table fall outside expected range", false);
+			twpc3Logger.enterScope();
 			for (LoadConstants.ColumnRange Column : ExpectedColumnRanges) {
-				System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\t\tChecking for column name " + Column);
-				System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\t\tBuilding SQL command to count number of rows falling outside expected range");
+				twpc3Logger.logINFO("Current column " + Column, false);
+				twpc3Logger.logINFO("3a. Building/Executing SQL command to count number of rows falling outside expected range", true);
 				// build SQL command for error count
 				String SqlStr = 
 					String.format(
 							"SELECT COUNT(*) FROM %1$s WHERE (%2$s < %3$s OR %2$s > %4$s) AND %2$s != -999",
 							FileEntry.TargetTable, Column.ColumnName,
 							Column.MinValue, Column.MaxValue);
-				System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\t\tExecuting SQL command: " + SqlStr);
+				twpc3Logger.logINFO(SqlStr, true);
 
 				// execute range error count command
 				Statement SqlCmd = SqlConn.createStatement();
 				ResultSet Results = SqlCmd.executeQuery(SqlStr);
 				if (Results.next()) {
 					int ErrorCount = Results.getInt(1);
-					System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\t\tError count: " + ErrorCount);
+					twpc3Logger.logINFO("Error count: " + ErrorCount, true);
 					if (ErrorCount > 0) {
-						System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\t\tRange error found");
-						System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\t\tIsMatchTableColumnRanges evaluates to false");
+						twpc3Logger.logINFO("ERROR: Range error found!", true);
 						return false; // found a range error
 					}
 				} else {
-					System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\t\tNo range values returned");
-					System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\t\tIsMatchTableColumnRanges evaluates to false");
+					twpc3Logger.logINFO("ERROR: No range value returned by SQL command!", true);
 					return false; // error case
 				}
 
 			}
+			twpc3Logger.exitScope();
 		} finally {
-			if (SqlConn != null) SqlConn.close();
+			if (SqlConn != null) {
+				twpc3Logger.logINFO("4. Disconnecting from database", false);
+				SqlConn.close();
+			}
 		}
 
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tNo range errors found");
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tExiting IsMatchTableColumnRanges process");		
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\t-------------------------------------");
-		System.out.println();
 		return true; // no range errors found
 	}
 
@@ -762,17 +745,15 @@ public class LoadAppLogic {
 	 */
 	public static void CompactDatabase(DatabaseEntry DBEntry) throws Exception {
 		// Shrink database instance
-		System.out.println();	
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "-------------------------------------");		
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "Starting CompactDatabase process");
 		Connection SqlConn = null;
 		try {
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "Connecting to database instance " + DBEntry.ConnectionString);
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "Iterating over tables in database, and running compression commands");
-			System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "Entering loop");
+			twpc3Logger.logINFO("1. Connecting to database instance " + DBEntry.ConnectionString,false);
+			twpc3Logger.logINFO("2. Iterating over tables in database, and running compression commands",false);
+			twpc3Logger.logINFO("Entering loop", false);
+			twpc3Logger.enterScope();
 			SqlConn = DriverManager.getConnection(DBEntry.ConnectionString);
 			for (String TableName : LoadConstants.EXPECTED_TABLES) {
-				System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tCurrent table: " + TableName);
+				twpc3Logger.logINFO("Current table: " + TableName, true);
 				CallableStatement SqlCmd = 
 					SqlConn.prepareCall("CALL SYSCS_UTIL.SYSCS_INPLACE_COMPRESS_TABLE(?, ?, ?, ?, ?)");
 				SqlCmd.setString(1, SQL_USER.toUpperCase());
@@ -780,14 +761,16 @@ public class LoadAppLogic {
 				SqlCmd.setShort(3, (short) 1);
 				SqlCmd.setShort(4, (short) 1);
 				SqlCmd.setShort(5, (short) 1);
-				System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "\tExecuting SQL command: " + SqlCmd);
+				twpc3Logger.logINFO("2a. Executing SQL command: " + SqlCmd, true);
 				SqlCmd.execute();
 			}
+			twpc3Logger.exitScope();
+			twpc3Logger.logINFO("Exiting loop", false);		    
 		} finally {
-			if (SqlConn != null) SqlConn.close();
-		}
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "Exiting CompactDatabase process");		
-		System.out.println("<TIME> " + (System.currentTimeMillis()-START_TIME) + "\t" + "-------------------------------------");
-		System.out.println();		
+			if (SqlConn != null) {
+				twpc3Logger.logINFO("3. Disconnecting from database", false);
+				SqlConn.close();
+			}
+		}	
 	}
 }
