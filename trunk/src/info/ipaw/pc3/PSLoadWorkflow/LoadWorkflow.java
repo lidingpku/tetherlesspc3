@@ -1,6 +1,7 @@
 package info.ipaw.pc3.PSLoadWorkflow;
 
 import info.ipaw.pc3.PSLoadWorkflow.LoadAppLogic.CSVFileEntry;
+import info.ipaw.pc3.PSLoadWorkflow.LoadAppLogic.CSVFileEntryList;
 
 import java.util.*;
 
@@ -91,6 +92,10 @@ public class LoadWorkflow {
     twpc3Logger.logINFO("Step 7: Control Flow: Loop. ForEach CSVFileEntry in CSVFileEntryList (ID:" + ReadCSVReadyFileOutput.thisUUID + ")",true);
     twpc3Logger.logINFO("=== Start Loop ===",false);  
     twpc3Logger.enterScope();
+    
+    LoadAppLogic.CSVFileEntryList CSVFileListUpdated = new CSVFileEntryList(new ArrayList<CSVFileEntry>(), UUID.randomUUID());
+    
+   // CSVFileListUpdated.thisCSVFileEntryList 
     for (LoadAppLogic.CSVFileEntry FileEntry : ReadCSVReadyFileOutput.thisCSVFileEntryList) {
 		twpc3Logger.logINFO("--- Start Iteration ---",false);
 		twpc3Logger.logINFO("Current value: " + FileEntry.FilePath,false);	
@@ -123,6 +128,7 @@ public class LoadWorkflow {
 	    twpc3Logger.enterScope();
 	    LoadAppLogic.CSVFileEntry ReadCSVFileColumnNamesOutput =
     		LoadAppLogic.ReadCSVFileColumnNames(FileEntry);
+	    CSVFileListUpdated.thisCSVFileEntryList.add(FileEntry);
 	    twpc3Logger.exitScope();
 	    twpc3Logger.logINFO("### Exiting ReadCSVFileColumnNames process ###",true);      
 	    twpc3Logger.logINFO("RETURNED CSVFileEntry (ID:" + ReadCSVFileColumnNamesOutput.thisUUID + ", PATH:" + ReadCSVFileColumnNamesOutput.FilePath + ")",false);  
@@ -255,5 +261,6 @@ public class LoadWorkflow {
     twpc3Logger.logINFO("****************************************",true);  
     twpc3Logger.logINFO("***          END OF WORKFLOW         ***",true);  
     twpc3Logger.logINFO("****************************************",false);      
+    
   }
 }
