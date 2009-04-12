@@ -24,13 +24,13 @@ public class twpc3Logger {
 	}
 	
 	public static void logINFO (String msg, boolean waitForNewLine) {
-		System.out.println("[INFO]  " + constructLogStr(msg));
-		if(!waitForNewLine)
-			System.out.println("[INFO]  " + constructLogStr(""));
+		//System.out.println("[INFO]  " + constructLogStr(msg));
+		//if(!waitForNewLine)
+		//	System.out.println("[INFO]  " + constructLogStr(""));
 	}
 
 	public static void logFATAL (String msg) {
-		System.out.println("[FATAL] " + constructLogStr(msg));
+		//System.out.println("[FATAL] " + constructLogStr(msg));
 	}
 
 	
