@@ -3,7 +3,13 @@ package info.ipaw.pc3.PSLoadWorkflow;
 import info.ipaw.pc3.PSLoadWorkflow.LoadAppLogic.CSVFileEntry;
 import info.ipaw.pc3.PSLoadWorkflow.LoadAppLogic.CSVFileEntryList;
 
+import java.io.StringWriter;
 import java.util.*;
+import org.openprovenance.model.*;
+import org.openprovenance.model.Process;
+import org.w3c.dom.Document;
+
+import com.panayotis.gnuplot.JavaPlot;
 
 
 public class LoadWorkflow {
@@ -11,7 +17,41 @@ public class LoadWorkflow {
 		private static long START_TIME = 0;
   public static void main(String[] args) throws Exception {
     START_TIME = System.currentTimeMillis();
+    
+    Account my_account = OPMFactory.getFactory().newAccount("hello world");
+    Collection<Account> acct = new ArrayList<Account>();
+    acct.add(my_account);
+    Collection<Overlaps> ovlps = new ArrayList<Overlaps>();
+    
+    Agent agt = new Agent();
+    agt.setId("AGENT");
+    Agents agts = new Agents();
+    agts.getAgent().add(agt);
+    
+    Accounts accts = OPMFactory.getFactory().newAccounts(acct, ovlps);
+    
+    Process pcs = OPMFactory.getFactory().newProcess("PROCESS", acct, "Value");
+    AccountId x = OPMFactory.getFactory().newAccountId(my_account);
+    pcs.getAccount().add(x);
+    Artifact art = OPMFactory.getFactory().newArtifact("ARTIFACT", acct, "Value");
+    Role role = OPMFactory.getFactory().newRole("Threw");
+    Used used = OPMFactory.getFactory().newUsed(pcs, role, art, acct);
+    
+    
+    Artifacts arts = new Artifacts();
+    arts.getArtifact().add(art);
+    Processes pcss = new Processes();
+    pcss.getProcess().add(pcs);
+    CausalDependencies cd = new CausalDependencies();
+    cd.getUsedOrWasGeneratedByOrWasTriggeredBy().add(used);
+    
+    
+    StringWriter sw = new StringWriter();
+    
+    OPMGraph graph = OPMFactory.getFactory().newOPMGraph(accts, pcss, arts, agts, cd);
 
+    System.out.println(OPMSerialiser.getThreadOPMSerialiser().serialiseOPMGraph(sw, graph, true));
+    
     //twpc3Logger.logINFO("****************************************",true);  
     //twpc3Logger.logINFO("***         START OF WORKFLOW        ***",true);  
     //twpc3Logger.logINFO("****************************************",false);    

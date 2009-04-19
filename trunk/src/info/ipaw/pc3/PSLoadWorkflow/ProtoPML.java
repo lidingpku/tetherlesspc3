@@ -30,8 +30,8 @@ public class ProtoPML {
 	public static Map<String, Integer> ProcessIDCounter = new HashMap<String, Integer>();
 	
 	public static class ProtoInfStep {
-		public String Process;
-		public String Agent;
+		public String Process;  // ruleURI
+		public String Agent;    // infEngURI
 		public List<UUID> Antecedents;
 		
 		public ProtoInfStep (String Process, String Agent, List<UUID> Antecedents) {
