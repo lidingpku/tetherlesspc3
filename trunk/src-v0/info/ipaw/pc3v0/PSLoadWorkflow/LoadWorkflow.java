@@ -1,6 +1,7 @@
 package info.ipaw.pc3v0.PSLoadWorkflow;
 
 
+import java.sql.ResultSet;
 import java.util.*;
 
 import edu.rpi.tw.provenance.MyLogger;
@@ -37,6 +38,7 @@ public class LoadWorkflow {
     MyLogger.get().log1("input", szFunctionName, new NameValue []{nv_args});
     
     String JobID = args[0], CSVRootPath = args[1];
+    
     
     NameValue nv_JobID =new NameValue(szFunctionName, "JobID", JobID);
     MyLogger.get().log_assign (szFunctionName, nv_JobID, nv_args);
@@ -171,8 +173,20 @@ public class LoadWorkflow {
       boolean LoadCSVFileIntoTableOutput =
           LoadAppLogic.LoadCSVFileIntoTable(CreateEmptyLoadDBOutput, ReadCSVFileColumnNamesOutput);
       
+           
       NameValue nv_LoadCSVFileIntoTableOutput = new NameValue(szFunctionName, "LoadCSVFileIntoTableOutput", LoadCSVFileIntoTableOutput);
-      MyLogger.get().log2("receive",szFunctionName, szSubFunctionName,  new NameValue []{nv_LoadCSVFileIntoTableOutput});
+      System.out.println("TARGET TABLE: " + ReadCSVFileColumnNamesOutput.TargetTable);
+      if(ReadCSVFileColumnNamesOutput.TargetTable.equalsIgnoreCase("P2Detection")) {
+    	     String dbEntry = LoadAppLogic.getDBEntry(CreateEmptyLoadDBOutput, ReadCSVFileColumnNamesOutput);
+    	     NameValue nv_dbEntry = new NameValue(szFunctionName, "Detection Entry", dbEntry);
+    	     MyLogger.get().log2("receive",szFunctionName, szSubFunctionName,  new NameValue []{nv_dbEntry});
+      }
+      else if(ReadCSVFileColumnNamesOutput.TargetTable.equalsIgnoreCase("P2ImageMeta")) {
+    	     String dbEntry = LoadAppLogic.getDBEntry(CreateEmptyLoadDBOutput, ReadCSVFileColumnNamesOutput);
+    	     NameValue nv_dbEntry = new NameValue(szFunctionName, "Image Entry", dbEntry);
+    	     MyLogger.get().log2("receive",szFunctionName, szSubFunctionName,  new NameValue []{nv_dbEntry});
+      }
+       MyLogger.get().log2("receive",szFunctionName, szSubFunctionName,  new NameValue []{nv_LoadCSVFileIntoTableOutput});
 
       // 7.g. Control Flow: Decision
       MyLogger.get().log1("check", szFunctionName, new NameValue []{nv_LoadCSVFileIntoTableOutput});

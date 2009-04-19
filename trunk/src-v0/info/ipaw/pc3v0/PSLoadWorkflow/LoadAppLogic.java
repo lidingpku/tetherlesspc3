@@ -537,6 +537,46 @@ public class LoadAppLogic {
 		return true; // no range errors found
 	}
 
+	public static String getDBEntry (DatabaseEntry DBEntry,
+			CSVFileEntry FileEntry) throws Exception {
+		if ("P2Detection".equalsIgnoreCase(FileEntry.TargetTable) ||
+				"P2FrameMeta".equalsIgnoreCase(FileEntry.TargetTable) ||
+				"P2ImageMeta".equalsIgnoreCase(FileEntry.TargetTable)) {
+			Connection SqlConn = null;
+			try {
+				// connect to database instance
+				SqlConn = DriverManager.getConnection(DBEntry.ConnectionString);
+				String SqlStr = 
+					String.format(
+							"SELECT * FROM %1$s LIMIT1",
+							FileEntry.TargetTable);
+
+				// execute range error count command
+				Statement SqlCmd = SqlConn.createStatement();
+				ResultSet Results = SqlCmd.executeQuery(SqlStr);
+				if(Results.next()) {
+					ResultSetMetaData md = Results.getMetaData();
+					int count = md.getColumnCount();
+					String retStr = Results.getString(1);
+					for (int i=2; i<=count; i++) {
+						retStr = retStr + "," + Results.getString(i);
+					}
+					return retStr;
+				} else {
+					new Exception();
+				}
+			} finally {
+				if (SqlConn != null) SqlConn.close();
+			}
+			
+		} else {
+			// none of the table types matches...invalid
+			return "NULL";
+		}
+		return "NULL";
+	}
+	
+	
 	/**
 	 * @param DBEntry
 	 */
@@ -560,4 +600,7 @@ public class LoadAppLogic {
 		}
 		
 	}
+	
+	
+	
 }
