@@ -27,18 +27,19 @@ public class GenRDFModel extends ProtoProv {
     public static final String NS = "http://www.cs.rpi.edu/~michaj6/PC3/PC3.owl#";
     public static final String ProtoProvNS = "http://www.cs.rpi.edu/~michaj6/ProtoProv.owl#";
     
-	public static void genRDFStore() {
+	public Model genRDFStore(ProtoProv protoprov) {
         // create an empty model
         Model model = ModelFactory.createDefaultModel();
         // Load Vars in First
         model.setNsPrefix("pc", NS);
         model.setNsPrefix("ProtoProv", ProtoProvNS);
-        model = loadInControllers(model);
-        model = loadInVars(model);
-        model = loadInFxns(model);
-        model = loadInUsds(model);
-        model = loadInWGBs(model);
-        model = loadInWCBs(model);
+        //model = loadInGroups()
+        model = loadInControllers(model, protoprov);
+        model = loadInVars(model, protoprov);
+        model = loadInFxns(model, protoprov);
+        model = loadInUsds(model, protoprov);
+        model = loadInWGBs(model, protoprov);
+        model = loadInWCBs(model, protoprov);
         
         model.write(System.out);
         
@@ -53,12 +54,13 @@ public class GenRDFModel extends ProtoProv {
  //       model.get
 //        queryModel(model);
         // Then Load in Fxns
+        return model;
 	}
 	
 	
 	
-	public static Model loadInControllers(Model model) {
-		Iterator <String> ctlIter = ctlStore.keySet().iterator();
+	public static Model loadInControllers(Model model, ProtoProv p) {
+		Iterator <String> ctlIter = p.ctlStore.keySet().iterator();
 		Property hasValue = model.createProperty(ProtoProvNS + "hasValue");
 		Property hasAccount = model.createProperty(ProtoProvNS + "hasAccount");
 		
@@ -66,8 +68,8 @@ public class GenRDFModel extends ProtoProv {
 			String thisCtlKey = ctlIter.next();
 			Resource thisCtlRes = model.createResource(NS + thisCtlKey);
 
-			Controller thisCtl = ctlStore.get(thisCtlKey);
-			String thisCtlValue = thisCtl.getValue().toString();	
+			Controller thisCtl = p.ctlStore.get(thisCtlKey);
+			String thisCtlValue = thisCtlKey;	
 			
 			Statement rdfTypeStmt = model.createStatement(thisCtlRes, RDF.type, model.createResource(ProtoProvNS + "Controller"));
 			Statement valueStmt = model.createStatement(thisCtlRes, hasValue, NS + thisCtlValue);
@@ -76,7 +78,7 @@ public class GenRDFModel extends ProtoProv {
 			
 			Iterator<String> thisCtlAccounts = thisCtl.getAccounts().iterator();
 			while(thisCtlAccounts.hasNext()) {
-				String thisAccountStr = thisCtlAccounts.next();
+				String thisAccountStr = NS + thisCtlAccounts.next();
 				Statement accountStmt = model.createStatement(thisCtlRes, hasAccount, thisAccountStr);
 				model.add(accountStmt);
 			}
@@ -85,34 +87,27 @@ public class GenRDFModel extends ProtoProv {
 	}
 
 
-	public static Model loadInVars(Model model) {
-		Iterator <String> varIter = varStore.keySet().iterator();
+	public static Model loadInVars(Model model, ProtoProv p) {
+		Iterator <String> varIter = p.varStore.keySet().iterator();
 		Property hasValue = model.createProperty(ProtoProvNS + "hasValue");
-		Property hasScope = model.createProperty(ProtoProvNS + "hasScope");
 		Property hasAccount = model.createProperty(ProtoProvNS + "hasAccount");
-		Property hasType = model.createProperty(ProtoProvNS + "hasType");
 		
 		while(varIter.hasNext()) {
 			String thisVarKey = varIter.next();
 			Resource thisVarRes  = model.createResource(NS + thisVarKey);
 			
-			Variable thisVar = varStore.get(thisVarKey);
+			Variable thisVar = p.varStore.get(thisVarKey);
 			String thisVarValue = thisVar.getValue().toString();
-			String thisVarScope = thisVar.getScope();
-			String thisVarType = thisVar.getType();
+
 			Statement valueStmt = model.createLiteralStatement(thisVarRes, hasValue, thisVarValue);
-			Statement scopeStmt = model.createLiteralStatement(thisVarRes, hasScope, thisVarScope);
-			Statement typeStmt = model.createLiteralStatement(thisVarRes, hasType, thisVarType);
 			
 			Statement rdfTypeStmt = model.createStatement(thisVarRes, RDF.type, model.createResource(ProtoProvNS + "Variable"));
 			model.add(rdfTypeStmt);
 			model.add(valueStmt);
-			model.add(scopeStmt);
-			model.add(typeStmt);
 			
 			Iterator<String> thisVarAccounts = thisVar.getAccounts().iterator();
 			while(thisVarAccounts.hasNext()) {
-				String thisAccountStr = thisVarAccounts.next();
+				String thisAccountStr = NS + thisVarAccounts.next();
 				Statement accountStmt = model.createStatement(thisVarRes, hasAccount, thisAccountStr);
 				model.add(accountStmt);
 			}
@@ -123,31 +118,27 @@ public class GenRDFModel extends ProtoProv {
 	}
 
 
-	public static Model loadInFxns(Model model) {
-		Iterator <String> fxnIter = fxnStore.keySet().iterator();
-		Property hasValue = model.createProperty(ProtoProvNS + "hasValue");
-		Property hasScope = model.createProperty(ProtoProvNS + "hasScope");
+	public static Model loadInFxns(Model model, ProtoProv p) {
+		Iterator <String> fxnIter = p.fxnStore.keySet().iterator();
+		Property hasName = model.createProperty(ProtoProvNS + "hasName");
 		Property hasAccount = model.createProperty(ProtoProvNS + "hasAccount");
 		
 		while(fxnIter.hasNext()) {
 			String thisFxnKey = fxnIter.next();
 			Resource thisFxnRes  = model.createResource(NS + thisFxnKey);
 			
-			Function thisFxn = fxnStore.get(thisFxnKey);
-			String thisFxnValue = thisFxn.getValue().toString();
-			String thisFxnScope = thisFxn.getScope();
+			Function thisFxn = p.fxnStore.get(thisFxnKey);
+			String thisFxnValue = thisFxn.getName();
 			
-			Statement valueStmt = model.createLiteralStatement(thisFxnRes, hasValue, thisFxnValue);
-			Statement scopeStmt = model.createLiteralStatement(thisFxnRes, hasScope, thisFxnScope);
+			Statement valueStmt = model.createLiteralStatement(thisFxnRes, hasName, thisFxnValue);
 
 			Statement rdfTypeStmt = model.createStatement(thisFxnRes, RDF.type, model.createResource(ProtoProvNS + "Function"));
 			model.add(rdfTypeStmt);
 			model.add(valueStmt);
-			model.add(scopeStmt);
 			
 			Iterator<String> thisFxnAccounts = thisFxn.getAccounts().iterator();
 			while(thisFxnAccounts.hasNext()) {
-				String thisAccountStr = thisFxnAccounts.next();
+				String thisAccountStr = NS + thisFxnAccounts.next();
 				Statement accountStmt = model.createStatement(thisFxnRes, hasAccount, thisAccountStr);
 				model.add(accountStmt);
 			}
@@ -157,8 +148,8 @@ public class GenRDFModel extends ProtoProv {
 		return model;
 	}
 
-	public static Model loadInUsds(Model model) {
-		Iterator <String> usdIter = usdStore.keySet().iterator();
+	public static Model loadInUsds(Model model, ProtoProv p) {
+		Iterator <String> usdIter = p.usdStore.keySet().iterator();
 		Property hasVariable = model.createProperty(ProtoProvNS + "usdTarget");
 		Property hasFunction = model.createProperty(ProtoProvNS + "usdSource");
 		Property hasRole = model.createProperty(ProtoProvNS + "hasRole");
@@ -168,7 +159,7 @@ public class GenRDFModel extends ProtoProv {
 			String thisUsdKey = usdIter.next();
 			Resource thisUsdRes  = model.createResource(NS + thisUsdKey);
 			
-			Usd thisUsd = usdStore.get(thisUsdKey);
+			Usd thisUsd = p.usdStore.get(thisUsdKey);
 			RDFNode thisUsdFunction = model.createResource(NS + thisUsd.getFunction());
 //			String thisUsdFunction = thisUsd.getFunction();
 			RDFNode thisUsdVariable = model.createResource(NS + thisUsd.getVariable());
@@ -187,7 +178,7 @@ public class GenRDFModel extends ProtoProv {
 			
 			Iterator<String> thisUsdAccounts = thisUsd.getAccounts().iterator();
 			while(thisUsdAccounts.hasNext()) {
-				String thisAccountStr = thisUsdAccounts.next();
+				String thisAccountStr = NS + thisUsdAccounts.next();
 				Statement accountStmt = model.createStatement(thisUsdRes, hasAccount, thisAccountStr);
 				model.add(accountStmt);
 			}
@@ -198,8 +189,8 @@ public class GenRDFModel extends ProtoProv {
 	}
 
 	
-	public static Model loadInWGBs(Model model) {
-		Iterator <String> wgbIter = wgbStore.keySet().iterator();
+	public static Model loadInWGBs(Model model, ProtoProv p) {
+		Iterator <String> wgbIter = p.wgbStore.keySet().iterator();
 		Property hasVariable = model.createProperty(ProtoProvNS + "wgbSource");
 		Property hasFunction = model.createProperty(ProtoProvNS + "wgbTarget");
 		Property hasRole = model.createProperty(ProtoProvNS + "hasRole");
@@ -209,7 +200,7 @@ public class GenRDFModel extends ProtoProv {
 			String thisWgbKey = wgbIter.next();
 			Resource thisWgbRes  = model.createResource(NS + thisWgbKey);
 			
-			WGB thisWgb = wgbStore.get(thisWgbKey);
+			WGB thisWgb = p.wgbStore.get(thisWgbKey);
 			RDFNode thisWgbFunction = model.createResource(NS + thisWgb.getFunction());
 			//String thisWgbFunction = thisWgb.getFunction();
 			RDFNode thisWgbVariable = model.createResource(NS + thisWgb.getVariable());
@@ -228,7 +219,7 @@ public class GenRDFModel extends ProtoProv {
 			
 			Iterator<String> thisWgbAccounts = thisWgb.getAccounts().iterator();
 			while(thisWgbAccounts.hasNext()) {
-				String thisAccountStr = thisWgbAccounts.next();
+				String thisAccountStr = NS + thisWgbAccounts.next();
 				Statement accountStmt = model.createStatement(thisWgbRes, hasAccount, thisAccountStr);
 				model.add(accountStmt);
 			}
@@ -238,8 +229,8 @@ public class GenRDFModel extends ProtoProv {
 		return model;
 	}
 
-	public static Model loadInWCBs(Model model) {
-		Iterator <String> wcbIter = wcbStore.keySet().iterator();
+	public static Model loadInWCBs(Model model, ProtoProv p) {
+		Iterator <String> wcbIter = p.wcbStore.keySet().iterator();
 		Property hasVariable = model.createProperty(ProtoProvNS + "wcbTarget");
 		Property hasFunction = model.createProperty(ProtoProvNS + "wcbSource");
 		Property hasRole = model.createProperty(ProtoProvNS + "hasRole");
@@ -248,7 +239,7 @@ public class GenRDFModel extends ProtoProv {
 		while(wcbIter.hasNext()) {
 			String thisWcbKey = wcbIter.next();
 			Resource thisWcbRes  = model.createResource(NS + thisWcbKey);
-			WCB thisWcb = wcbStore.get(thisWcbKey);
+			WCB thisWcb = p.wcbStore.get(thisWcbKey);
 			RDFNode thisWcbFunction = model.createResource(NS + thisWcb.getFunction());
 //			String thisWcbFunction = thisWcb.getFunction();
 			RDFNode thisWcbController = model.createResource(NS + thisWcb.getController());
@@ -268,7 +259,7 @@ public class GenRDFModel extends ProtoProv {
 
 			Iterator<String> thisWcbAccounts = thisWcb.getAccounts().iterator();
 			while(thisWcbAccounts.hasNext()) {
-				String thisAccountStr = thisWcbAccounts.next();
+				String thisAccountStr = NS + thisWcbAccounts.next();
 				Statement accountStmt = model.createStatement(thisWcbRes, hasAccount, thisAccountStr);
 				model.add(accountStmt);
 			}
