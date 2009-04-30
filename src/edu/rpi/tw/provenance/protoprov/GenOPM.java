@@ -1,6 +1,5 @@
 package edu.rpi.tw.provenance.protoprov;
 
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -15,7 +14,6 @@ import org.openprovenance.model.Artifacts;
 import org.openprovenance.model.CausalDependencies;
 import org.openprovenance.model.OPMFactory;
 import org.openprovenance.model.OPMGraph;
-import org.openprovenance.model.OPMSerialiser;
 import org.openprovenance.model.Overlaps;
 import org.openprovenance.model.Process;
 import org.openprovenance.model.Processes;
@@ -23,13 +21,25 @@ import org.openprovenance.model.Role;
 import org.openprovenance.model.Used;
 import org.openprovenance.model.WasGeneratedBy;
 
-public class GenOPM extends ProtoProv {
+public class GenOPM {
 
-	private static OPMFactory gOPMFactory = new OPMFactory();
-	private static Map<String, Artifact> artifactMap = new HashMap <String, Artifact>();
-	private static Map<String, Process> processMap = new HashMap <String, Process>();
+	private OPMFactory gOPMFactory = new OPMFactory();
+	private Map<String, Artifact> artifactMap = new HashMap <String, Artifact>();
+	private Map<String, Process> processMap = new HashMap <String, Process>();
 	
-	public static void printOPMGraph() throws Exception {
+	public OPMGraph genOPMGraph(ProtoProv p) throws Exception {
+		Accounts accounts = generateOPMAccounts(p);
+		Processes processes = generateOPMProcesses(p);
+		Artifacts artifacts =  generateOPMArtifacts(p);
+		Agents agents = new Agents();		
+		CausalDependencies causalDependencies =  generateOPMCausalDependencies(p);
+		
+		OPMGraph thisOPMGraph = gOPMFactory.newOPMGraph(accounts, processes, artifacts, agents, causalDependencies);
+
+		return thisOPMGraph;
+	}
+	/*
+	public void printOPMGraph() throws Exception {
 		Accounts accounts = generateOPMAccounts();
 		Processes processes = generateOPMProcesses();
 		Artifacts artifacts =  generateOPMArtifacts();
@@ -46,18 +56,26 @@ public class GenOPM extends ProtoProv {
 		
 		System.out.println(OPMSerialiser.getThreadOPMSerialiser().serialiseOPMGraph(sw, thisOPMGraph, true));
 	}
+	*/
+	private Accounts generateOPMAccounts(ProtoProv p) {
+		List<Account> accountList = new ArrayList<Account>();
 	
-	private static Accounts generateOPMAccounts() {
-		List<Account> accountList = getAccountList(getGroups());
+		Iterator <ProtoProv.Group> groupList = p.getGroups().iterator();
+		
+		while(groupList.hasNext()) {
+			ProtoProv.Group thisGroup = groupList.next();
+			accountList.add(gOPMFactory.newAccount(thisGroup.getLabel()));
+		}
+		
 		List<Overlaps> overlapsList = new ArrayList<Overlaps>();
 
-		Iterator <List<String>> intersectIter = getIntersects().iterator();
+		Iterator <ProtoProv.Intersect> intersectIter = p.getIntersects().iterator();
 		while(intersectIter.hasNext()) {
-			List<String> thisIntersect = intersectIter.next();
-			Iterator <String> ctlIter = thisIntersect.iterator();
+			ProtoProv.Intersect thisIntersect = intersectIter.next();
+			Iterator <ProtoProv.Group> ctlIter = thisIntersect.groups.iterator();
 			List <Account> overlaps = new ArrayList<Account>();
 			while(ctlIter.hasNext()) {
-				String thisCtl = ctlIter.next();
+				String thisCtl = ctlIter.next().getLabel();
 				Account thisAccount = gOPMFactory.newAccount(thisCtl);
 				overlaps.add(thisAccount);
 			}
@@ -70,28 +88,14 @@ public class GenOPM extends ProtoProv {
 	    return accounts;
 	}
 	
-	
-	private static List<Account> getAccountList(List<String> accountNames) {
-		List<Account> accountList = new ArrayList<Account>();
-		Iterator <String> accountIdIter = accountNames.iterator();
-		while(accountIdIter.hasNext()) {
-			String thisAccountId = accountIdIter.next();
-			Account curAccount = gOPMFactory.newAccount(thisAccountId);
-			accountList.add(curAccount);
-		}
-		return accountList;
-	}
-	
-	private static Processes generateOPMProcesses() {
+	private Processes generateOPMProcesses(ProtoProv p) {
 		Processes processes = new Processes();
 
-		Iterator <String> fxnIter = fxnStore.keySet().iterator();
+		Iterator <String> fxnIter = p.fxnStore.keySet().iterator();
 		while(fxnIter.hasNext()) {
 			String thisFxnKey = fxnIter.next();		
-			Function thisFxn = fxnStore.get(thisFxnKey);
-			String thisFxnValue = thisFxn.getScope() + "_" + thisFxn.getValue().toString();
-			String thisFxnScope = thisFxn.getScope();
-			String finalId = thisFxnKey + "_" + thisFxnScope; 
+			ProtoProv.Function thisFxn = p.fxnStore.get(thisFxnKey);
+			String thisFxnValue = thisFxn.getName().toString();
 			
 			Iterator<String> thisFxnAccountIds = thisFxn.getAccounts().iterator();
 			List<Account> accounts = new ArrayList<Account>();
@@ -100,25 +104,21 @@ public class GenOPM extends ProtoProv {
 				Account thisAccount = gOPMFactory.newAccount(thisAccountStr);
 				accounts.add(thisAccount);
 			}
-			Process curProcess = gOPMFactory.newProcess(finalId, accounts, thisFxnValue);
+			Process curProcess = gOPMFactory.newProcess(thisFxnKey, accounts, thisFxnValue);
 			processMap.put(thisFxnKey, curProcess);
 			processes.getProcess().add(curProcess);
 		}
 		return processes;
 	}
 
-	private static Artifacts generateOPMArtifacts() {
+	private Artifacts generateOPMArtifacts(ProtoProv p) {
 		Artifacts artifacts = new Artifacts();
 
-		Iterator <String> varIter = varStore.keySet().iterator();
+		Iterator <String> varIter = p.varStore.keySet().iterator();
 		while(varIter.hasNext()) {
 			String thisVarKey = varIter.next();		
-			Variable thisVar = varStore.get(thisVarKey);
+			ProtoProv.Variable thisVar = p.varStore.get(thisVarKey);
 			String thisVarValue = thisVar.getValue().toString();
-			String thisVarType = thisVar.getType();
-			String thisVarScope = thisVar.getScope();
-			String finalId = thisVarKey + "_" + thisVarScope; 
-			String finalValue = thisVarScope + "_" + thisVarType + "_" + thisVarValue;
 			
 			Iterator<String> thisFxnAccountIds = thisVar.getAccounts().iterator();
 			List<Account> accounts = new ArrayList<Account>();
@@ -127,7 +127,7 @@ public class GenOPM extends ProtoProv {
 				Account thisAccount = gOPMFactory.newAccount(thisAccountStr);
 				accounts.add(thisAccount);
 			}
-			Artifact curArtifact = gOPMFactory.newArtifact(finalId, accounts, finalValue);
+			Artifact curArtifact = gOPMFactory.newArtifact(thisVarKey, accounts, thisVarValue);
 			artifactMap.put(thisVarKey, curArtifact);
 			artifacts.getArtifact().add(curArtifact);
 		}
@@ -136,16 +136,16 @@ public class GenOPM extends ProtoProv {
 	}
 	
 	
-	private static CausalDependencies generateOPMCausalDependencies() {
+	private CausalDependencies generateOPMCausalDependencies(ProtoProv p) {
 		CausalDependencies causalDependencies = new CausalDependencies();
 
-		Iterator <String> wgbIter = wgbStore.keySet().iterator();
+		Iterator <String> wgbIter = p.wgbStore.keySet().iterator();
 		while(wgbIter.hasNext()) {
 			String thisWgbKey = wgbIter.next();
-			WGB thisWGB = wgbStore.get(thisWgbKey);
+			ProtoProv.WGB thisWGB = p.wgbStore.get(thisWgbKey);
 			Artifact thisArtifact = artifactMap.get(thisWGB.getVariable());
 			Process thisProcess = processMap.get(thisWGB.getFunction());
-			Role thisWgbRole = gOPMFactory.newRole(thisWGB.getRole());
+			Role thisWgbRole = gOPMFactory.newRole(p.RelationRoles.get(thisWgbKey).getLabel());
 
 			Iterator<String> thisWgbAccountIds = thisWGB.getAccounts().iterator();
 			List<Account> accounts = new ArrayList<Account>();
@@ -158,10 +158,10 @@ public class GenOPM extends ProtoProv {
 			causalDependencies.getUsedOrWasGeneratedByOrWasTriggeredBy().add(curWasGeneratedBy);		
 		}
 
-		Iterator <String> usdIter = usdStore.keySet().iterator();
+		Iterator <String> usdIter = p.usdStore.keySet().iterator();
 		while(usdIter.hasNext()) {
 			String thisUsdKey = usdIter.next();
-			Usd thisUsed = usdStore.get(thisUsdKey);
+			ProtoProv.Usd thisUsed = p.usdStore.get(thisUsdKey);
 			Artifact thisArtifact = artifactMap.get(thisUsed.getVariable());
 			Process thisProcess = processMap.get(thisUsed.getFunction());
 			Role thisUsdRole = gOPMFactory.newRole(thisUsed.getRole());
