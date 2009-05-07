@@ -69,12 +69,6 @@ public class GenPML {
 			String engineURI = thisCtl.getController();
 			String ruleURI = thisFxn.getName();		
 			
-		
-			//System.out.println(tabs+ "CONCLUSION: " + conclusionRawString);
-			//System.out.println(tabs+ "NS URI: " + nsURI);
-			//System.out.println(tabs+ "PROCESS: " + ruleURI);
-			//System.out.println(tabs+ "AGENT: " + engineURI);
-			
 			// create InferenceStep instance and assign property values
 			IWInferenceStep infStep = (IWInferenceStep)PMLObjectManager.createPMLObject( PMLJ.InferenceStep_lname);
 			infStep.setHasIndex(infStepCounter++);
@@ -87,8 +81,6 @@ public class GenPML {
 			Collection <String> linksToNS = new ArrayList<String> ();		
 			if(p.usdLink.containsKey(fxnID)) {
 				linksToNS = p.usdLink.get(fxnID);
-			//	System.out.println(tabs + fxnID + ": " + usdLink.get(fxnID));
-			//	System.out.println(linksToNS.toString());
 				Iterator <String> nsIDs = linksToNS.iterator();
 				
 				List <IWNodeSet>antecedents = new ArrayList<IWNodeSet>();
