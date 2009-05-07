@@ -9,7 +9,7 @@ public class Main {
 	public static void main(String[] args) throws Exception {
 		LoadWorkflow x = new LoadWorkflow();
 		GenRDFModel genRDFModel = new GenRDFModel();
-		ProtoProv p = x.RunPANSTAARS("J062941", "../../Data/J062941/");
+		ProtoProv p = x.RunPANSTAARS("J062941", "/Data/J062941/");
 		Model m = genRDFModel.genRDFStore(p);
 		
 		m.write(System.out);
