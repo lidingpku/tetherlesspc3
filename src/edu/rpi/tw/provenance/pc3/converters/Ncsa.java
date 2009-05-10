@@ -1,8 +1,6 @@
 package edu.rpi.tw.provenance.pc3.converters;
 
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
+import java.io.*;
 import java.util.HashMap;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -14,8 +12,8 @@ import org.xml.sax.SAXException;
 
 import org.xml.sax.helpers.DefaultHandler;
 
-public class Ncsa extends DefaultHandler{
-	static private Writer out;
+public class Ncsa extends DefaultHandler {
+	static private BufferedWriter out;
 
 	private String tempVal = "";
 
@@ -69,9 +67,10 @@ public class Ncsa extends DefaultHandler{
 			SAXParser sp = spf.newSAXParser();
 
 			// parse the file and also register this class for call backs
-			sp.parse(
-					"E:\\Research-RPI\\tw\\provenance\\2009-04_2009-05_pc3\\team\\NcsaPc3\\output.rdf",
-					this);
+			sp
+					.parse(
+							"E:\\Research-RPI\\tw\\provenance\\2009-04_2009-05_pc3\\team\\NcsaPc3\\output.rdf",
+							this);
 
 		} catch (SAXException se) {
 			se.printStackTrace();
@@ -156,9 +155,11 @@ public class Ncsa extends DefaultHandler{
 	public static void main(String[] args) {
 		// Set up output stream
 		try {
-			out = new OutputStreamWriter(System.out, "UTF8");
-		} catch (Exception e) {
-			e.printStackTrace();
+			FileWriter fstream = new FileWriter(
+					"E:\\Research-RPI\\tw\\provenance\\2009-04_2009-05_pc3\\team\\NcsaPc3\\converted1.rdf");
+			out = new BufferedWriter(fstream);
+		} catch (IOException e) {
+			System.out.println("Failed to open file writer!");
 		}
 		Ncsa nc3 = new Ncsa();
 		nc3.parseDocument();
