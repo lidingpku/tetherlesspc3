@@ -29,7 +29,7 @@ public class UCDGC extends DefaultHandler {
 	
 	private HashMap<String, String> HM2 = new HashMap<String, String>();
 
-	public UCDGCMapping() {
+	public UCDGC() {
 
 		// initialize the mapping into a hashmap
 		//Mapping first level elements
@@ -253,7 +253,7 @@ public class UCDGC extends DefaultHandler {
 		} catch (IOException e) {
 			System.out.println("Failed to open file writer!");
 		}
-		UCDGCMapping map = new UCDGCMapping();
+		UCDGC map = new UCDGC();
 		map.parseDocument();
 	}
 
