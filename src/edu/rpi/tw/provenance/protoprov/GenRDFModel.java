@@ -20,12 +20,14 @@ public class GenRDFModel extends ProtoProv {
 	
     /** <p>The namespace of the vocabalary as a string ({@value})</p> */
     public static final String ProtoProvNS = "http://www.cs.rpi.edu/~michaj6/ProtoProvV2.owl#";
+    public static final String OutputNS = "http://www.cs.rpi.edu/~michaj6/PC3.owl#";
     
 	public Model genRDFStore(ProtoProv protoprov) {
         // create an empty model
         Model model = ModelFactory.createDefaultModel();
         // Load Vars in First
-        model.setNsPrefix("ProtoProvV2", ProtoProvNS);
+        model.setNsPrefix("PPV2", ProtoProvNS);
+        model.setNsPrefix("PC3", OutputNS);
         //model = loadInGroups()
         model = loadInControllers(model, protoprov);
         model = loadInVars(model, protoprov);
@@ -38,30 +40,29 @@ public class GenRDFModel extends ProtoProv {
         return model;
 	}
 	
-	public static Model loadInGroups(Model model, ProtoProv p) {
+	public static Model loadInContexts(Model model, ProtoProv p) {
 		// TODO: insert code for loading in groups
 		return model;
 	}
 	
-	public static Model loadInIntersects(Model model, ProtoProv p) {
+	public static Model loadInContextOverlaps(Model model, ProtoProv p) {
 		// TODO: insert code for loading in intersects
 		return model;
 	}
 	
 	public static Model loadInControllers(Model model, ProtoProv p) {
 		Iterator <String> ctlIter = p.ctlStore.keySet().iterator();
-		Property hasValue = model.createProperty(ProtoProvNS + "hasName");
-		Property hasAccount = model.createProperty(ProtoProvNS + "hasAccount");
-		
+		Property hasName = model.getProperty(ProtoProvNS + "hasName");
+		Property hasAccount = model.getProperty(ProtoProvNS + "hasContext");
+		RDFNode x = model.getRDFNode(model.getResource(ProtoProvNS + "Context").asNode());
 		while(ctlIter.hasNext()) {
 			String thisCtlKey = ctlIter.next();
-			Resource thisCtlRes = model.createResource(ProtoProvNS+ thisCtlKey);
+			Resource thisCtlRes = model.createResource(OutputNS+ thisCtlKey);
 
 			Controller thisCtl = p.ctlStore.get(thisCtlKey);
 			String thisCtlValue = thisCtlKey;	
-			
-			Statement rdfTypeStmt = model.createStatement(thisCtlRes, RDF.type, model.createResource(ProtoProvNS + "Controller"));
-			Statement valueStmt = model.createStatement(thisCtlRes, hasValue,ProtoProvNS + thisCtlValue);
+			Statement rdfTypeStmt = model.createStatement(thisCtlRes, RDF.type, x);
+			Statement valueStmt = model.createStatement(thisCtlRes, hasName, OutputNS + thisCtlValue);
 			model.add(rdfTypeStmt);
 			model.add(valueStmt);
 			
