@@ -159,7 +159,7 @@ public class UCDGC extends DefaultHandler {
 			} else if (HM1.containsKey(qName)){
 				if (qName == "value") {
 					if (lastElement == "process") {
-						printData("<" + "hasType");
+						printData("<" + "rdfs:label");
 					} else {
 						printData("<" + "hasValue");
 					}
@@ -169,9 +169,9 @@ public class UCDGC extends DefaultHandler {
 						printData("\n\t\t\t\t");
 						printData("<ProvRole>");					
 						printData("\n\t\t\t\t\t");
-						printData("<rdf:labels>");
+						printData("<rdf:label>");
 						printData(attributes.getValue(0));
-						printData("</rdf:labels>");
+						printData("</rdf:label>");
 						printData("\n\t\t\t\t");
 						printData("</ProvRole>");
 						printData("\n\t\t\t");
@@ -231,7 +231,7 @@ public class UCDGC extends DefaultHandler {
 //convert second level
 		} else if (qName == "value") {              
 			if (lastElement == "process") {
-				printData("</" + "hasType" + ">");
+				printData("</" + "rdfs:label" + ">");
 			} else {
 				printData("</" + "hasValue" + ">");
 			}
