@@ -191,7 +191,6 @@ public class UCDGC extends DefaultHandler {
 										printData(" ");
 										printData(tempAttQName + "=\"" + attributes.getValue(i) + "\"");
 									}
-									printData("/");
 								}
 							}
 					}
@@ -236,7 +235,11 @@ public class UCDGC extends DefaultHandler {
 				printData("</" + "hasValue" + ">");
 			}
 		} else if (HM1.containsKey(qName)) {
-			printData("");
+			if (qName == "role") {
+			} else {
+				printData("</" + HM1Assist.get(lastElement) + HM1.get(qName));
+				printData(">");
+			} 
 		} else {
 			System.out.println("No matching defined.");
 		}
