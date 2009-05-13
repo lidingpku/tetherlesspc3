@@ -176,7 +176,7 @@ public class KCL extends DefaultHandler {
 								printData("xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" ");
 							}
 							printData(tempAttQName + "=\""
-									+ attributes.getValue(i) + "\"");
+									+ attributes.getValue(i).replaceAll("#", "_") + "\"");
 							if (qName == "opmGraph") {
 								printData(" xmlns:rdfs=\"http://www.w3.org/2000/01/rdf-schema#\"");
 							}
@@ -218,7 +218,7 @@ public class KCL extends DefaultHandler {
 											tempAttQName = attributes.getQName(i);
 										}
 										printData(" ");
-										printData(tempAttQName + "=\"" + attributes.getValue(i) + "\"");
+										printData(tempAttQName + "=\"" + attributes.getValue(i).replaceAll("#", "_").replaceAll("#", "_") + "\"");
 									}
 								}
 							}
