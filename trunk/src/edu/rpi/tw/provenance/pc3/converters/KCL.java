@@ -15,7 +15,7 @@ import org.xml.sax.SAXException;
 
 import org.xml.sax.helpers.DefaultHandler;
 
-public class KCLMapping extends DefaultHandler {
+public class KCL extends DefaultHandler {
 
 	static private BufferedWriter out;
 
@@ -34,7 +34,7 @@ public class KCLMapping extends DefaultHandler {
 	private List<String> ClassContainsAccount= new ArrayList<String>();
 
 
-	public KCLMapping() {
+	public KCL() {
 
 		// initialize the mapping into a hashmap
 		//Mapping first level elements
@@ -287,7 +287,7 @@ public class KCLMapping extends DefaultHandler {
 		} catch (IOException e) {
 			System.out.println("Failed to open file writer!");
 		}
-		KCLMapping map = new KCLMapping();
+		KCL map = new KCL();
 		map.parseDocument();
 	}
 
