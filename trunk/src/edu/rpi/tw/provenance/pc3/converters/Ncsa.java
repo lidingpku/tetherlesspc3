@@ -3,14 +3,21 @@ package edu.rpi.tw.provenance.pc3.converters;
 import java.io.*;
 import java.util.HashMap;
 
+import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import org.openprovenance.model.OPMDeserialiser;
+import org.openprovenance.model.OPMGraph;
+import org.openprovenance.model.OPMSerialiser;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
 import org.xml.sax.helpers.DefaultHandler;
+
+import edu.rpi.tw.provenance.protoprov.LoadOPM;
+import edu.rpi.tw.provenance.protoprov.ProtoProv;
 
 public class Ncsa extends DefaultHandler {
 	static private BufferedWriter out;
@@ -67,10 +74,7 @@ public class Ncsa extends DefaultHandler {
 			SAXParser sp = spf.newSAXParser();
 
 			// parse the file and also register this class for call backs
-			sp
-					.parse(
-							"E:\\Research-RPI\\tw\\provenance\\2009-04_2009-05_pc3\\team\\NcsaPc3\\output.rdf",
-							this);
+			sp.parse("E:\\Research-RPI\\tw\\provenance\\2009-04_2009-05_pc3\\team\\NcsaPc3\\output.rdf", this);
 
 		} catch (SAXException se) {
 			se.printStackTrace();
@@ -152,7 +156,19 @@ public class Ncsa extends DefaultHandler {
 
 	}
 
-	public static void main(String[] args) {
+	public static ProtoProv loadNcsa() throws Exception {
+		
+		File f = new File("/PC3/otherTeams/NcsaPc3/J609241_output.xml");
+		OPMDeserialiser d = new OPMDeserialiser();
+		OPMGraph g2 = d.deserialiseOPMGraph(f);
+		StringWriter sw = new StringWriter();
+		LoadOPM l = new LoadOPM();
+		
+		ProtoProv p = l.loadOPMGraph(f);
+		return p;
+//		System.out.println(OPMSerialiser.getThreadOPMSerialiser().serialiseOPMGraph(sw, g2, true));
+/*
+		
 		// Set up output stream
 		try {
 			FileWriter fstream = new FileWriter(
@@ -162,6 +178,6 @@ public class Ncsa extends DefaultHandler {
 			System.out.println("Failed to open file writer!");
 		}
 		Ncsa nc3 = new Ncsa();
-		nc3.parseDocument();
+		nc3.parseDocument();*/
 	}
 }

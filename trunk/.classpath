@@ -30,7 +30,6 @@
 	<classpathentry kind="lib" path="lib/junit.jar"/>
 	<classpathentry kind="lib" path="lib/log4j-1.2.12.jar"/>
 	<classpathentry kind="lib" path="lib/lucene-core-2.3.1.jar"/>
-	<classpathentry kind="lib" path="lib/opm-1.0-20080826.123926-3.jar"/>
 	<classpathentry kind="lib" path="lib/optional-1.5.4.jar"/>
 	<classpathentry kind="lib" path="lib/pellet.jar"/>
 	<classpathentry kind="lib" path="lib/pml.jar"/>
@@ -45,5 +44,6 @@
 	<classpathentry kind="lib" path="lib/xml-apis-1.0.b2.jar"/>
 	<classpathentry kind="lib" path="lib/xml-apis.jar"/>
 	<classpathentry kind="lib" path="lib/xsdlib.jar"/>
+	<classpathentry kind="lib" path="lib/opm-1.0-20090428.084527-6.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

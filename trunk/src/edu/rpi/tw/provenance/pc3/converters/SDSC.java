@@ -10,10 +10,15 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import org.openprovenance.model.OPMDeserialiser;
+import org.openprovenance.model.OPMGraph;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 
 import org.xml.sax.helpers.DefaultHandler;
+
+import edu.rpi.tw.provenance.protoprov.LoadOPM;
+import edu.rpi.tw.provenance.protoprov.ProtoProv;
 
 public class SDSC extends DefaultHandler {
 
@@ -279,6 +284,19 @@ public class SDSC extends DefaultHandler {
 		}
 	}
 
+	
+	public static ProtoProv loadSDSC() throws Exception {
+		
+		File f = new File("/PC3/otherTeams/SDSCPc3/pc3-J062941.out.xml");
+		OPMDeserialiser d = new OPMDeserialiser();
+		OPMGraph g2 = d.deserialiseOPMGraph(f);
+		StringWriter sw = new StringWriter();
+		LoadOPM l = new LoadOPM();
+		
+		ProtoProv p = l.loadOPMGraph(f);
+		return p;
+	}
+	
 	public static void main(String[] args) {
 		// Set up output stream
 		try {

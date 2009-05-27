@@ -61,12 +61,12 @@ public class GenPML {
 		while(infStepIDs.hasNext()) {
 			String thisKey = infStepIDs.next();
 			ProtoProv.WGB thisWGB = p.wgbStore.get(thisKey);
-			String fxnID = thisWGB.getFunction();
+			String fxnID = thisWGB.getTarget();
 			
 			ProtoProv.Function thisFxn = p.fxnStore.get(fxnID);
 			ProtoProv.WCB thisCtl = p.wcbStore.get(p.wcbLink.get(fxnID).iterator().next());
 			
-			String engineURI = thisCtl.getController();
+			String engineURI = thisCtl.getTarget();
 			String ruleURI = thisFxn.getName();		
 			
 			// create InferenceStep instance and assign property values
@@ -87,7 +87,7 @@ public class GenPML {
 				while(nsIDs.hasNext()) {
 					String thisIter = nsIDs.next();
 					ProtoProv.Usd thisUsd = p.usdStore.get(thisIter);
-					String variable = thisUsd.getVariable();
+					String variable = thisUsd.getTarget();
 					IWNodeSet thisNodeSet = createNodeSet(p, variable);
 					antecedents.add(thisNodeSet);
 				}

@@ -119,117 +119,88 @@ public class ProtoProv {
 		public List<Group> groups;
 		
 	}
-	
-	public class Usd {
+
+	public class Relation {
+		public String getSource() {
+			return source;
+		}
+		public void setSource(String source) {
+			this.source = source;
+		}
+
+		public String getTarget() {
+			return target;
+		}		
+		public void setTarget(String target) {
+			this.target = target;
+		}
+		
+		public Collection<String> getContexts() {
+			return contexts;
+		}
+		public void setContexts(Collection<String> contexts) {
+			this.contexts = contexts;
+		}
+		
 		public String getRole() {
-			return role;
+			return role.getLabel();
 		}
-		public void setRole(String role) {
-			this.role = role;
+		public void setRole(String newLabel) {
+			role.setLabel(newLabel);
 		}
-		public String getVariable() {
-			return variable;
-		}
-		public void setVariable(String variable) {
-			this.variable = variable;
-		}
-		public String getFunction() {
-			return function;
-		}
-		public void setFunction(String function) {
-			this.function = function;
-		}
-		public Collection<String> getAccounts() {
-			return accounts;
-		}
-		public void setAccounts(Collection<String> accounts) {
-			this.accounts = accounts;
-		}
-		public Usd(String function, String variable, String role, Collection<String> accounts) {
-			this.accounts = accounts;
-			this.function = function;
-			this.role = role;
-			this.variable = variable;
-		}
-		private String role;
-		private String variable;
-		private String function;
-		private Collection<String> accounts;		
+		
+		protected Role role;
+		protected String source;
+		protected String target;
+		protected Collection<String> contexts;				
+
 	}
 
-	public class WGB {
-		public String getRole() {
-			return role;
+	public class Usd extends Relation {
+		public Usd(String source, String target, String role, Collection<String> contexts) {
+			this.contexts = contexts;
+			this.source = source;
+			this.role = new Role(role);
+			this.target = target;
 		}
-		public void setRole(String role) {
-			this.role = role;
-		}
-		public String getVariable() {
-			return variable;
-		}
-		public void setVariable(String variable) {
-			this.variable = variable;
-		}
-		public String getFunction() {
-			return function;
-		}
-		public void setFunction(String function) {
-			this.function = function;
-		}
-		public Collection<String> getAccounts() {
-			return accounts;
-		}
-		public void setAccounts(Collection<String> accounts) {
-			this.accounts = accounts;
-		}
-		public WGB(String function, String variable, String role, Collection<String> accounts) {
-			this.accounts = accounts;
-			this.function = function;
-			this.role = role;
-			this.variable = variable;
-		}
-		private String role;
-		private String variable;
-		private String function;
-		private Collection<String> accounts;		
 	}
+	public class WGB extends Relation {
+		public WGB(String source, String target, String role, Collection<String> contexts) {
+			this.contexts = contexts;
+			this.source = source;
+			this.role = new Role(role);
+			this.target = target;
+		}
+	}
+	public class WTB extends Relation {
+		public WTB(String source, String target, String role, Collection<String> contexts) {
+			this.contexts = contexts;
+			this.source = source;
+			this.role = new Role(role);
+			this.target = target;
+		}
+	}
+	public class WDF extends Relation {
+		public WDF(String source, String target, String role, Collection<String> contexts) {
+			this.contexts = contexts;
+			this.source = source;
+			this.role = new Role(role);
+			this.target = target;
+		}
+	}
+	public class WCB extends Relation {
+		public WCB(String source, String target, String role, Collection<String> contexts) {
+			this.contexts = contexts;
+			this.source = source;
+			this.role = new Role(role);
+			this.target = target;
+		}
+	}
+
 	
-	public class WCB {
-		public String getRole() {
-			return role;
-		}
-		public void setRole(String role) {
-			this.role = role;
-		}
-		public String getFunction() {
-			return function;
-		}
-		public void setFunction(String function) {
-			this.function = function;
-		}
-		public String getController() {
-			return controller;
-		}
-		public void setController(String controller) {
-			this.controller = controller;
-		}
-		public Collection<String> getAccounts() {
-			return accounts;
-		}
-		public void setAccounts(Collection<String> accounts) {
-			this.accounts = accounts;
-		}
-		public WCB(String function, String controller, String role, Collection<String> accounts) {
-			this.accounts = accounts;
-			this.function = function;
-			this.role = role;
-			this.controller = controller;
-		}
-		private String role;
-		private String function;
-		private String controller;
-		private Collection<String> accounts;		
-	}
+
+	
+	
 	
 	 private List<Group> groups = new ArrayList<Group>();
 	 private List<Intersect> intersects = new ArrayList<Intersect>();
@@ -240,13 +211,17 @@ public class ProtoProv {
 	 public Map <String, Usd> usdStore = new HashMap<String, Usd>();
 	 public Map <String, WGB> wgbStore = new HashMap<String, WGB>();
 	 public Map <String, WCB> wcbStore = new HashMap<String, WCB>();
+	 public Map <String, WDF> wdfStore = new HashMap<String, WDF>();
+	 public Map <String, WTB> wtbStore = new HashMap<String, WTB>();
 	
 	 
-	 public Map<String, Role> RelationRoles = new HashMap<String, Role>();
+	 //public Map<String, Role> RelationRoles = new HashMap<String, Role>();
 	 
 	 public Map <String, Collection<String>> usdLink = new HashMap<String, Collection<String>>();
 	 public Map <String, Collection<String>> wgbLink = new HashMap<String, Collection<String>>();
 	 public Map <String, Collection<String>> wcbLink = new HashMap<String, Collection<String>>();
+	 public Map <String, Collection<String>> wdfLink = new HashMap<String, Collection<String>>();
+	 public Map <String, Collection<String>> wtbLink = new HashMap<String, Collection<String>>();
 	
 	
 	public void AddGroup(String id) {
@@ -291,6 +266,7 @@ public class ProtoProv {
 		if(usdLink.containsKey(function))
 			UsdIds = usdLink.get(function);
 		Usd used = new Usd(function, variable, role, accountIds);
+		//RelationRoles.put(id, new Role(role));
 		usdStore.put(id, used);
 		UsdIds.add(id);
 		usdLink.put(function, UsdIds);
@@ -302,7 +278,8 @@ public class ProtoProv {
 		Collection<String> WGBIds = new ArrayList<String>();
 		if(wgbLink.containsKey(variable))
 			WGBIds = wgbLink.get(variable);
-		WGB wgb = new WGB(function, variable, role, accountIds);
+		WGB wgb = new WGB(variable, function, role, accountIds);
+		//RelationRoles.put(id, new Role(role));
 		wgbStore.put(id, wgb);
 		WGBIds.add(id);
 		wgbLink.put(variable, WGBIds);
@@ -314,9 +291,36 @@ public class ProtoProv {
 		if(wcbLink.containsKey(function))
 			WCBIds = wcbLink.get(function);
 		WCB wcb = new WCB(function, controller, role, accountIds);
+		//RelationRoles.put(id, new Role(role));
 		wcbStore.put(id, wcb);
 		WCBIds.add(id);
 		wcbLink.put(function, WCBIds);
 
 	}	
+	
+	public void AddWTB(String id, String function, String role, String function2, Collection <String> accountIds) {
+
+		Collection<String> WGBIds = new ArrayList<String>();
+		if(wgbLink.containsKey(function))
+			WGBIds = wgbLink.get(function);
+		WTB wtb = new WTB(function, function2, role, accountIds);
+		//RelationRoles.put(id, new Role(role));
+		wtbStore.put(id, wtb);
+		WGBIds.add(id);
+		wgbLink.put(function, WGBIds);
+		
+	}
+
+	public void AddWDF(String id, String function, String role, String controller, Collection <String> accountIds) {
+		Collection<String> WCBIds = new ArrayList<String>();
+		if(wcbLink.containsKey(function))
+			WCBIds = wcbLink.get(function);
+		WDF wdf = new WDF(function, controller, role, accountIds);
+		//RelationRoles.put(id, new Role(role));
+		wdfStore.put(id,wdf);
+		WCBIds.add(id);
+		wcbLink.put(function, WCBIds);
+
+	}	
+	
 }
