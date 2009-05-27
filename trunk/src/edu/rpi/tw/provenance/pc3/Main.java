@@ -24,13 +24,16 @@ import edu.rpi.tw.provenance.protoprov.*;
 
 public class Main {
 	public static void main(String[] args) throws Exception {
-	/*	LoadWorkflow x = new LoadWorkflow();
+		LoadWorkflow x = new LoadWorkflow();
 		GenRDFModel genRDFModel = new GenRDFModel();
 		ProtoProv p = x.RunPANSTAARS("J062941", "/Data/J062941/");
 		Model m = genRDFModel.genRDFStore(p);
+		GenOPM genOPM = new GenOPM();
 		OPMGraph g = genOPM.genOPMGraph(p);
-	
-		*/
+		StringWriter sw = new StringWriter();
+		System.out.println(OPMSerialiser.getThreadOPMSerialiser().serialiseOPMGraph(sw, g, true));
+
+		
 		
 //		Ncsa iNcsa = new Ncsa();
 //		ProtoProv p = iNcsa.loadNcsa();
@@ -59,8 +62,8 @@ public class Main {
 //		KCL iKCL = new KCL();
 //		ProtoProv p = iKCL.loadKCL();
 		
-		PASS3 iPASS3 = new PASS3();
-		ProtoProv p = iPASS3.loadPASS3();
+//		PASS3 iPASS3 = new PASS3();
+//		ProtoProv p = iPASS3.loadPASS3();
 		
 		
 		//GenOPM genOPM = new GenOPM();
@@ -73,10 +76,10 @@ public class Main {
 		//System.out.println(OPMSerialiser.getThreadOPMSerialiser().serialiseOPMGraph(sw, g, true));
 
 		
-		GenRDFModel gRdf = new GenRDFModel();
-		OntModel m = gRdf.genRDFStore(p);
+//		GenRDFModel gRdf = new GenRDFModel();
+//		OntModel m = gRdf.genRDFStore(p);
 		
-		m.write(System.out);
+//		m.write(System.out);
 		
 	}
 }
