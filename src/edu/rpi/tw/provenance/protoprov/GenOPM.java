@@ -143,11 +143,11 @@ public class GenOPM {
 		while(wgbIter.hasNext()) {
 			String thisWgbKey = wgbIter.next();
 			ProtoProv.WGB thisWGB = p.wgbStore.get(thisWgbKey);
-			Artifact thisArtifact = artifactMap.get(thisWGB.getVariable());
-			Process thisProcess = processMap.get(thisWGB.getFunction());
-			Role thisWgbRole = gOPMFactory.newRole(p.RelationRoles.get(thisWgbKey).getLabel());
+			Artifact thisArtifact = artifactMap.get(thisWGB.getSource());
+			Process thisProcess = processMap.get(thisWGB.getTarget());
+			Role thisWgbRole = gOPMFactory.newRole(thisWGB.getRole());
 
-			Iterator<String> thisWgbAccountIds = thisWGB.getAccounts().iterator();
+			Iterator<String> thisWgbAccountIds = thisWGB.getContexts().iterator();
 			List<Account> accounts = new ArrayList<Account>();
 			while(thisWgbAccountIds.hasNext()) {
 				String thisAccountStr = thisWgbAccountIds.next();
@@ -162,11 +162,11 @@ public class GenOPM {
 		while(usdIter.hasNext()) {
 			String thisUsdKey = usdIter.next();
 			ProtoProv.Usd thisUsed = p.usdStore.get(thisUsdKey);
-			Artifact thisArtifact = artifactMap.get(thisUsed.getVariable());
-			Process thisProcess = processMap.get(thisUsed.getFunction());
+			Artifact thisArtifact = artifactMap.get(thisUsed.getTarget());
+			Process thisProcess = processMap.get(thisUsed.getSource());
 			Role thisUsdRole = gOPMFactory.newRole(thisUsed.getRole());
 
-			Iterator<String> thisUsdAccountIds = thisUsed.getAccounts().iterator();
+			Iterator<String> thisUsdAccountIds = thisUsed.getContexts().iterator();
 			List<Account> accounts = new ArrayList<Account>();
 			while(thisUsdAccountIds.hasNext()) {
 				String thisAccountStr = thisUsdAccountIds.next();
