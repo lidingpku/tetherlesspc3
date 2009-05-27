@@ -59,9 +59,23 @@ public class LoadWorkflow {
 		// END //
 		
 		// 2. Control Flow: Decision
-		if (!IsCSVReadyFileExistsOutput) throw new RuntimeException("IsCSVReadyFileExists failed");
 
-
+		// ANNOTATION //
+		String provFxnCheck_IsCSVReadyFileExists = idGen.newFunctionId(scope, "Check_IsCSVReadyFileExists");
+		protoprov.AddFunction(provFxnCheck_IsCSVReadyFileExists, "Check_IsCSVReadyFileExists", provGroups);
+		protoprov.AddUsed(idGen.newRelationId("USD"), provFxnCheck_IsCSVReadyFileExists, "control flow checkpoint", provVarIsCSVReadyFileExistsOutput, provGroups);
+		// END//
+		
+		if (!IsCSVReadyFileExistsOutput) {
+			String provFxnEndState = idGen.newFunctionId(scope, "EndState");
+			protoprov.AddFunction(provFxnEndState, "EndState", provGroups);
+			protoprov.AddWTB(idGen.newRelationId("WTB"), provFxnEndState, "failed control flow check", provFxnCheck_IsCSVReadyFileExists, provGroups);			
+			String provVarEndValue = idGen.newFunctionId(scope, "EndValue");
+			protoprov.AddVariable(provVarEndValue, "false", provGroups);
+			protoprov.AddWGB(idGen.newRelationId("WGB"), provVarEndValue, "end state value", provFxnEndState, provGroups);
+			return protoprov;
+		}
+		
 		// 3. ReadCSVReadyFile
 		List<LoadAppLogic.CSVFileEntry> ReadCSVReadyFileOutput =
 			LoadAppLogic.ReadCSVReadyFile(CSVRootPath);
@@ -72,9 +86,10 @@ public class LoadWorkflow {
 		String provFxnReadCSVReadyFile = idGen.newFunctionId(scope, "ReadCSVReadyFile");
 		protoprov.AddFunction(provFxnReadCSVReadyFile, "ReadCSVReadyFile", provGroups);
 		protoprov.AddUsed(idGen.newRelationId("USD"), provFxnReadCSVReadyFile, "file path", provVarCSVRootPath, provGroups);
-		protoprov.AddUsed(idGen.newRelationId("USD"), provFxnReadCSVReadyFile, "check IsCSVReadyFileExistsOutput", provVarIsCSVReadyFileExistsOutput, provGroups);
+		//protoprov.AddUsed(idGen.newRelationId("USD"), provFxnReadCSVReadyFile, "check IsCSVReadyFileExistsOutput", provVarIsCSVReadyFileExistsOutput, provGroups);
 		protoprov.AddWGB(idGen.newRelationId("WGB"), provVarReadCSVReadyFileOutput, "output", provFxnReadCSVReadyFile, provGroups);
 		protoprov.AddWCB(idGen.newRelationId("WCB"), provFxnReadCSVReadyFile, "controlled by", provCtlSys, provGroups);
+		protoprov.AddWTB(idGen.newRelationId("WTB"), provFxnReadCSVReadyFile, "passed control flow check", provFxnCheck_IsCSVReadyFileExists, provGroups);			
 		// END //		
 		
 		// 4. IsMatchCSVFileTables
@@ -91,7 +106,22 @@ public class LoadWorkflow {
 		// END //		
 				
 		// 5. Control Flow: Decision
-		if (!IsMatchCSVFileTablesOutput) throw new RuntimeException("IsMatchCSVFileTables failed");
+		
+		// ANNOTATION //
+		String provFxnCheck_IsMatchCSVFileTables = idGen.newFunctionId(scope, "Check_IsMatchCSVFileTables");
+		protoprov.AddFunction(provFxnCheck_IsMatchCSVFileTables, "Check_IsMatchCSVFileTables", provGroups);
+		protoprov.AddUsed(idGen.newRelationId("USD"), provFxnCheck_IsMatchCSVFileTables, "control flow checkpoint", provVarIsMatchCSVFileTablesOutput, provGroups);
+		// END//
+		
+		if (!IsMatchCSVFileTablesOutput) {
+			String provFxnEndState = idGen.newFunctionId(scope, "EndState");
+			protoprov.AddFunction(provFxnEndState, "EndState", provGroups);
+			protoprov.AddWTB(idGen.newRelationId("WTB"), provFxnEndState, "failed control flow check", provFxnCheck_IsMatchCSVFileTables, provGroups);			
+			String provVarEndValue = idGen.newFunctionId(scope, "EndValue");
+			protoprov.AddVariable(provVarEndValue, "false", provGroups);
+			protoprov.AddWGB(idGen.newRelationId("WGB"), provVarEndValue, "end state value", provFxnEndState, provGroups);
+			return protoprov;
+		}
 
 		// 6. CreateEmptyLoadDB
 		LoadAppLogic.DatabaseEntry CreateEmptyLoadDBOutput = LoadAppLogic.CreateEmptyLoadDB(JobID);
@@ -103,9 +133,11 @@ public class LoadWorkflow {
 		protoprov.AddFunction(provFxnCreateEmptyLoadDB, "CreateEmptyLoadDB", provGroups);
 		
 		protoprov.AddUsed(idGen.newRelationId("USD"), provFxnCreateEmptyLoadDB, "Job ID", provVarJobID, provGroups);
-		protoprov.AddUsed(idGen.newRelationId("USD"), provFxnCreateEmptyLoadDB, "check IsMatchCSVFileTablesOutput", provVarIsMatchCSVFileTablesOutput, provGroups);
+		//protoprov.AddUsed(idGen.newRelationId("USD"), provFxnCreateEmptyLoadDB, "check IsMatchCSVFileTablesOutput", provVarIsMatchCSVFileTablesOutput, provGroups);
 		protoprov.AddWGB(idGen.newRelationId("WGB"), provVarCreateEmptyLoadDBOutput, "output", provFxnCreateEmptyLoadDB, provGroups);
 		protoprov.AddWCB(idGen.newRelationId("WCB"), provFxnCreateEmptyLoadDB, "controlled by", provCtlSys, provGroups);
+		protoprov.AddWTB(idGen.newRelationId("WTB"), provFxnCreateEmptyLoadDB, "passed control flow check", provFxnCheck_IsMatchCSVFileTables, provGroups);			
+
 		// END //				
 		
 		int counter = 1;
@@ -145,7 +177,22 @@ public class LoadWorkflow {
 			// END //		
 			
 			// 7.b. Control Flow: Decision
-			if (!IsExistsCSVFileOutput) throw new RuntimeException("IsExistsCSVFile failed");
+			
+			// ANNOTATION //
+			String provFxnCheck_IsExistsCSVFile = idGen.newFunctionId(scope, "Check_IsExistsCSVFile");
+			protoprov.AddFunction(provFxnCheck_IsExistsCSVFile, "Check_IsExistsCSVFile", provGroups);
+			protoprov.AddUsed(idGen.newRelationId("USD"), provFxnCheck_IsExistsCSVFile, "control flow checkpoint", provVarIsExistsCSVFileOutput, provGroups);
+			// END//
+			
+			if (!IsExistsCSVFileOutput) {
+				String provFxnEndState = idGen.newFunctionId(scope, "EndState");
+				protoprov.AddFunction(provFxnEndState, "EndState", provGroups);
+				protoprov.AddWTB(idGen.newRelationId("WTB"), provFxnEndState, "failed control flow check", provFxnCheck_IsExistsCSVFile, provGroups);			
+				String provVarEndValue = idGen.newFunctionId(scope, "EndValue");
+				protoprov.AddVariable(provVarEndValue, "false", provGroups);
+				protoprov.AddWGB(idGen.newRelationId("WGB"), provVarEndValue, "end state value", provFxnEndState, provGroups);
+				return protoprov;
+			}
 
 			// 7.c. ReadCSVFileColumnNames
 			LoadAppLogic.CSVFileEntry ReadCSVFileColumnNamesOutput =
@@ -157,10 +204,11 @@ public class LoadWorkflow {
 			protoprov.AddVariable(provVarReadCSVFileColumnNamesOutput, FileEntry.FilePath + "-" + FileEntry.TargetTable, provGroups);
 			String provFxnReadCSVFileColumnNames = idGen.newFunctionId(scope, "ReadCSVFileColumnNames");
 			protoprov.AddFunction(provFxnReadCSVFileColumnNames, "ReadCSVFileColumnNames", provGroups);
-			protoprov.AddUsed(idGen.newRelationId("USD"), provFxnReadCSVFileColumnNames, "check IsExistsCSVFileOutput", provVarIsExistsCSVFileOutput, provGroups);
+			//protoprov.AddUsed(idGen.newRelationId("USD"), provFxnReadCSVFileColumnNames, "check IsExistsCSVFileOutput", provVarIsExistsCSVFileOutput, provGroups);
 			protoprov.AddUsed(idGen.newRelationId("USD"), provFxnReadCSVFileColumnNames, "file entry", provVarFileEntry, provGroups);
 			protoprov.AddWGB(idGen.newRelationId("WGB"), provVarReadCSVFileColumnNamesOutput, "output", provFxnReadCSVFileColumnNames, provGroups);
 			protoprov.AddWCB(idGen.newRelationId("WCB"), provFxnReadCSVFileColumnNames, "controlled by", provCtlSys, provGroups);
+			protoprov.AddWTB(idGen.newRelationId("WTB"), provFxnReadCSVFileColumnNames, "passed control flow check", provFxnCheck_IsExistsCSVFile, provGroups);			
 			// END //				
 
 			// 7.d. IsMatchCSVFileColumnNames
@@ -178,8 +226,22 @@ public class LoadWorkflow {
 			// END //				
 			
 			// 7.e. Control Flow: Decision
-			if (!IsMatchCSVFileColumnNamesOutput)
-				throw new RuntimeException("IsMatchCSVFileColumnNames failed");
+			
+			// ANNOTATION //
+			String provFxnCheck_IsMatchCSVFileColumnNames = idGen.newFunctionId(scope, "Check_IsMatchCSVFileColumnNames");
+			protoprov.AddFunction(provFxnCheck_IsMatchCSVFileColumnNames, "Check_IsMatchCSVFileColumnNames", provGroups);
+			protoprov.AddUsed(idGen.newRelationId("USD"), provFxnCheck_IsMatchCSVFileColumnNames, "control flow checkpoint", provVarIsMatchCSVFileColumnNamesOutput, provGroups);
+			// END//
+			
+			if (!IsMatchCSVFileColumnNamesOutput) {
+				String provFxnEndState = idGen.newFunctionId(scope, "EndState");
+				protoprov.AddFunction(provFxnEndState, "EndState", provGroups);
+				protoprov.AddWTB(idGen.newRelationId("WTB"), provFxnEndState, "failed control flow check", provFxnCheck_IsMatchCSVFileColumnNames, provGroups);			
+				String provVarEndValue = idGen.newFunctionId(scope, "EndValue");
+				protoprov.AddVariable(provVarEndValue, "false", provGroups);
+				protoprov.AddWGB(idGen.newRelationId("WGB"), provVarEndValue, "end state value", provFxnEndState, provGroups);
+				return protoprov;
+			}
 
 
 			// ///////////////////////////////////
@@ -196,11 +258,33 @@ public class LoadWorkflow {
 			protoprov.AddFunction(provFxnLoadCSVFileIntoTable, "LoadCSVFileIntoTable", provGroups);
 			protoprov.AddUsed(idGen.newRelationId("USD"), provFxnLoadCSVFileIntoTable, "file entry", provVarReadCSVFileColumnNamesOutput, provGroups);
 			protoprov.AddUsed(idGen.newRelationId("USD"), provFxnLoadCSVFileIntoTable, "database", provVarCreateEmptyLoadDBOutput, provGroups);
-			protoprov.AddUsed(idGen.newRelationId("USD"), provFxnLoadCSVFileIntoTable, "check IsMatchCSVFileColumnNamesOutput", provVarIsMatchCSVFileColumnNamesOutput, provGroups);
+			//protoprov.AddUsed(idGen.newRelationId("USD"), provFxnLoadCSVFileIntoTable, "check IsMatchCSVFileColumnNamesOutput", provVarIsMatchCSVFileColumnNamesOutput, provGroups);
 			protoprov.AddWGB(idGen.newRelationId("WGB"), provVarLoadCSVFileIntoTableOutput, "output", provFxnLoadCSVFileIntoTable, provGroups);
 			protoprov.AddWCB(idGen.newRelationId("WCB"), provFxnLoadCSVFileIntoTable, "controlled by", provCtlSys, provGroups);
+			protoprov.AddWTB(idGen.newRelationId("WTB"), provFxnLoadCSVFileIntoTable, "passed control flow check", provFxnCheck_IsMatchCSVFileColumnNames, provGroups);			
 			// END //	
 						
+
+			
+			// 7.g. Control Flow: Decision
+
+			// ANNOTATION //
+			String provFxnCheck_LoadCSVFileIntoTable = idGen.newFunctionId(scope, "Check_LoadCSVFileIntoTable");
+			protoprov.AddFunction(provFxnCheck_LoadCSVFileIntoTable, "Check_LoadCSVFileIntoTable", provGroups);
+			protoprov.AddUsed(idGen.newRelationId("USD"), provFxnCheck_LoadCSVFileIntoTable, "control flow checkpoint", provVarLoadCSVFileIntoTableOutput, provGroups);
+			// END//
+
+			
+			if (!LoadCSVFileIntoTableOutput) {
+				String provFxnEndState = idGen.newFunctionId(scope, "EndState");
+				protoprov.AddFunction(provFxnEndState, "EndState", provGroups);
+				protoprov.AddWTB(idGen.newRelationId("WTB"), provFxnEndState, "failed control flow check", provFxnCheck_LoadCSVFileIntoTable, provGroups);			
+				String provVarEndValue = idGen.newFunctionId(scope, "EndValue");
+				protoprov.AddVariable(provVarEndValue, "false", provGroups);
+				protoprov.AddWGB(idGen.newRelationId("WGB"), provVarEndValue, "end state value", provFxnEndState, provGroups);
+				return protoprov;
+			}
+
 			if(ReadCSVFileColumnNamesOutput.TargetTable.equalsIgnoreCase("P2Detection")) {
 				String dbEntry = LoadAppLogic.getDBEntry(CreateEmptyLoadDBOutput, ReadCSVFileColumnNamesOutput);
 				provVarDbEntryP2Detection = idGen.newVariableId(scope, "DBEntry"+FileEntry.TargetTable, "provVarDbEntryP2Detection");
@@ -213,12 +297,7 @@ public class LoadWorkflow {
 				protoprov.AddVariable(provVarDbEntryP2ImageMeta, dbEntry, provGroups);
 				protoprov.AddWGB(idGen.newRelationId("WGB"), provVarDbEntryP2ImageMeta, "created by", provFxnLoadCSVFileIntoTable, provGroups);
 			}
-
 			
-			// 7.g. Control Flow: Decision
-			if (!LoadCSVFileIntoTableOutput) throw new RuntimeException("LoadCSVFileIntoTable failed");
-
-
 			// 7.h. UpdateComputedColumns
 			boolean UpdateComputedColumnsOutput =
 				LoadAppLogic.UpdateComputedColumns(CreateEmptyLoadDBOutput, ReadCSVFileColumnNamesOutput);
@@ -230,14 +309,30 @@ public class LoadWorkflow {
 			protoprov.AddFunction(provFxnUpdateComputedColumns, "UpdateComputedColumns", provGroups);
 			protoprov.AddUsed(idGen.newRelationId("USD"), provFxnUpdateComputedColumns, "file entry", provVarReadCSVFileColumnNamesOutput, provGroups);
 			protoprov.AddUsed(idGen.newRelationId("USD"), provFxnUpdateComputedColumns, "database", provVarCreateEmptyLoadDBOutput, provGroups);
-			protoprov.AddUsed(idGen.newRelationId("USD"), provFxnUpdateComputedColumns, "check LoadCSVFileIntoTableOutput", provVarLoadCSVFileIntoTableOutput, provGroups);
+			//protoprov.AddUsed(idGen.newRelationId("USD"), provFxnUpdateComputedColumns, "check LoadCSVFileIntoTableOutput", provVarLoadCSVFileIntoTableOutput, provGroups);
 			protoprov.AddWGB(idGen.newRelationId("WGB"), provVarUpdateComputedColumnsOutput, "output", provFxnUpdateComputedColumns, provGroups);
 			protoprov.AddWCB(idGen.newRelationId("WCB"), provFxnUpdateComputedColumns, "controlled by", provCtlSys, provGroups);
+			protoprov.AddWTB(idGen.newRelationId("WTB"), provFxnUpdateComputedColumns, "passed control flow check", provFxnCheck_LoadCSVFileIntoTable, provGroups);			
 			// END //	
 						
 			// 7.i. Control Flow: Decision
-			if (!UpdateComputedColumnsOutput) throw new RuntimeException("UpdateComputedColumns failed");
 
+			// ANNOTATION //
+			String provFxnCheck_UpdateComputedColumns = idGen.newFunctionId(scope, "Check_UpdateComputedColumns");
+			protoprov.AddFunction(provFxnCheck_UpdateComputedColumns, "Check_UpdateComputedColumns", provGroups);
+			protoprov.AddUsed(idGen.newRelationId("USD"), provFxnCheck_UpdateComputedColumns, "control flow checkpoint", provVarUpdateComputedColumnsOutput, provGroups);
+			// END//
+
+			
+			if (!UpdateComputedColumnsOutput) {
+				String provFxnEndState = idGen.newFunctionId(scope, "EndState");
+				protoprov.AddFunction(provFxnEndState, "EndState", provGroups);
+				protoprov.AddWTB(idGen.newRelationId("WTB"), provFxnEndState, "failed control flow check", provFxnCheck_UpdateComputedColumns, provGroups);			
+				String provVarEndValue = idGen.newFunctionId(scope, "EndValue");
+				protoprov.AddVariable(provVarEndValue, "false", provGroups);
+				protoprov.AddWGB(idGen.newRelationId("WGB"), provVarEndValue, "end state value", provFxnEndState, provGroups);
+				return protoprov;
+			}
 
 			// ///////////////////////////////////
 			// //// PostLoad Validation //////
@@ -253,14 +348,29 @@ public class LoadWorkflow {
 			protoprov.AddFunction(provFxnIsMatchTableRowCount, "IsMatchTableRowCount", provGroups);
 			protoprov.AddUsed(idGen.newRelationId("USD"), provFxnIsMatchTableRowCount, "file entry", provVarReadCSVFileColumnNamesOutput, provGroups);
 			protoprov.AddUsed(idGen.newRelationId("USD"), provFxnIsMatchTableRowCount, "database", provVarCreateEmptyLoadDBOutput, provGroups);
-			protoprov.AddUsed(idGen.newRelationId("USD"), provFxnIsMatchTableRowCount, "check UpdateComputedColumnsOutput", provVarUpdateComputedColumnsOutput, provGroups);
+			//protoprov.AddUsed(idGen.newRelationId("USD"), provFxnIsMatchTableRowCount, "check UpdateComputedColumnsOutput", provVarUpdateComputedColumnsOutput, provGroups);
 			protoprov.AddWGB(idGen.newRelationId("WGB"), provVarIsMatchTableRowCountOutput, "output", provFxnIsMatchTableRowCount, provGroups);
 			protoprov.AddWCB(idGen.newRelationId("WCB"), provFxnIsMatchTableRowCount, "controlled by", provCtlSys, provGroups);
+			protoprov.AddWTB(idGen.newRelationId("WTB"), provFxnIsMatchTableRowCount, "passed control flow check", provFxnCheck_UpdateComputedColumns, provGroups);			
 			// END //	
 			
 			// 7.k. Control Flow: Decision
-			if (!IsMatchTableRowCountOutput) throw new RuntimeException("IsMatchTableRowCount failed");
 
+			// ANNOTATION //
+			String provFxnCheck_IsMatchTableRowCount = idGen.newFunctionId(scope, "Check_IsMatchTableRowCount");
+			protoprov.AddFunction(provFxnCheck_IsMatchTableRowCount, "Check_IsMatchTableRowCount", provGroups);
+			protoprov.AddUsed(idGen.newRelationId("USD"), provFxnCheck_IsMatchTableRowCount, "control flow checkpoint", provVarIsMatchTableRowCountOutput, provGroups);
+			// END//
+			
+			if (!IsMatchTableRowCountOutput) {
+				String provFxnEndState = idGen.newFunctionId(scope, "EndState");
+				protoprov.AddFunction(provFxnEndState, "EndState", provGroups);
+				protoprov.AddWTB(idGen.newRelationId("WTB"), provFxnEndState, "failed control flow check", provFxnCheck_IsMatchTableRowCount, provGroups);			
+				String provVarEndValue = idGen.newFunctionId(scope, "EndValue");
+				protoprov.AddVariable(provVarEndValue, "false", provGroups);
+				protoprov.AddWGB(idGen.newRelationId("WGB"), provVarEndValue, "end state value", provFxnEndState, provGroups);
+				return protoprov;
+			}
 
 			// 7.l. IsMatchTableColumnRanges
 			boolean IsMatchTableColumnRangesOutput =
@@ -275,14 +385,29 @@ public class LoadWorkflow {
 			protoprov.AddFunction(provFxnIsMatchTableColumnRanges, "IsMatchTableColumnRanges", provGroups);
 			protoprov.AddUsed(idGen.newRelationId("USD"), provFxnIsMatchTableColumnRanges, "file entry", provVarReadCSVFileColumnNamesOutput, provGroups);
 			protoprov.AddUsed(idGen.newRelationId("USD"), provFxnIsMatchTableColumnRanges, "database", provVarCreateEmptyLoadDBOutput, provGroups);
-			protoprov.AddUsed(idGen.newRelationId("USD"), provFxnIsMatchTableColumnRanges, "check IsMatchTableRowCountOutput", provVarIsMatchTableRowCountOutput, provGroups);
+			//protoprov.AddUsed(idGen.newRelationId("USD"), provFxnIsMatchTableColumnRanges, "check IsMatchTableRowCountOutput", provVarIsMatchTableRowCountOutput, provGroups);
 			protoprov.AddWGB(idGen.newRelationId("WGB"), provVarIsMatchTableColumnRangesOutput, "output", provFxnIsMatchTableColumnRanges, provGroups);
 			protoprov.AddWCB(idGen.newRelationId("WCB"), provFxnIsMatchTableColumnRanges, "controlled by", provCtlSys, provGroups);
+			protoprov.AddWTB(idGen.newRelationId("WTB"), provFxnIsMatchTableColumnRanges, "passed control flow check", provFxnCheck_IsMatchTableRowCount, provGroups);			
 			// END //	
 						
 			// 7.m. Control Flow: Decision
-			if (!IsMatchTableColumnRangesOutput)
-				throw new RuntimeException("IsMatchTableColumnRanges failed");
+			
+			// ANNOTATION //
+			String provFxnCheck_IsMatchTableColumnRanges = idGen.newFunctionId(scope, "Check_IsMatchTableColumnRanges");
+			protoprov.AddFunction(provFxnCheck_IsMatchTableColumnRanges, "Check_IsMatchTableColumnRanges", provGroups);
+			protoprov.AddUsed(idGen.newRelationId("USD"), provFxnCheck_IsMatchTableColumnRanges, "control flow checkpoint", provVarIsMatchTableColumnRangesOutput, provGroups);
+			// END//
+			
+			if (!IsMatchTableColumnRangesOutput) {
+				String provFxnEndState = idGen.newFunctionId(scope, "EndState");
+				protoprov.AddFunction(provFxnEndState, "EndState", provGroups);
+				protoprov.AddWTB(idGen.newRelationId("WTB"), provFxnEndState, "failed control flow check", provFxnCheck_IsMatchTableColumnRanges, provGroups);			
+				String provVarEndValue = idGen.newFunctionId(scope, "EndValue");
+				protoprov.AddVariable(provVarEndValue, "false", provGroups);
+				protoprov.AddWGB(idGen.newRelationId("WGB"), provVarEndValue, "end state value", provFxnEndState, provGroups);
+				return protoprov;
+			}
 
 			lastCheck = provVarIsMatchTableColumnRangesOutput;
 			counter++;
@@ -302,6 +427,14 @@ public class LoadWorkflow {
 		protoprov.AddUsed(idGen.newRelationId("USD"), provFxnCompactDatabase, "IsMatchTableColumnRangesOutput check", lastCheck, provGroups);
 		protoprov.AddWGB(idGen.newRelationId("WGB"), provVarCompactDatabaseOutput, "output", provFxnCompactDatabase, provGroups);
 		protoprov.AddWCB(idGen.newRelationId("WCB"), provFxnCompactDatabase, "controlled by", provCtlSys, provGroups);
+
+		
+		String provFxnEndState = idGen.newFunctionId(scope, "EndState");
+		protoprov.AddFunction(provFxnEndState, "EndState", provGroups);
+		protoprov.AddWTB(idGen.newRelationId("WTB"), provFxnEndState, "failed control flow check", provFxnCompactDatabase, provGroups);			
+		String provVarEndValue = idGen.newFunctionId(scope, "EndValue");
+		protoprov.AddVariable(provVarEndValue, "true", provGroups);
+		protoprov.AddWGB(idGen.newRelationId("WGB"), provVarEndValue, "end state value", provFxnEndState, provGroups);
 		// END //	
 
 		

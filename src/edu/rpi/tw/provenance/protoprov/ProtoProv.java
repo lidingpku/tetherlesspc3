@@ -300,14 +300,14 @@ public class ProtoProv {
 	
 	public void AddWTB(String id, String function, String role, String function2, Collection <String> accountIds) {
 
-		Collection<String> WGBIds = new ArrayList<String>();
-		if(wgbLink.containsKey(function))
-			WGBIds = wgbLink.get(function);
+		Collection<String> WTBIds = new ArrayList<String>();
+		if(wtbLink.containsKey(function))
+			WTBIds = wtbLink.get(function);
 		WTB wtb = new WTB(function, function2, role, accountIds);
 		//RelationRoles.put(id, new Role(role));
 		wtbStore.put(id, wtb);
-		WGBIds.add(id);
-		wgbLink.put(function, WGBIds);
+		WTBIds.add(id);
+		wtbLink.put(function, WTBIds);
 		
 	}
 

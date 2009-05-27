@@ -20,6 +20,7 @@ import org.openprovenance.model.Processes;
 import org.openprovenance.model.Role;
 import org.openprovenance.model.Used;
 import org.openprovenance.model.WasGeneratedBy;
+import org.openprovenance.model.WasTriggeredBy;
 
 public class GenOPM {
 
@@ -176,6 +177,27 @@ public class GenOPM {
 			Used curUsed = gOPMFactory.newUsed(thisProcess, thisUsdRole, thisArtifact, accounts);
 			causalDependencies.getUsedOrWasGeneratedByOrWasTriggeredBy().add(curUsed);		
 		}	
+		
+
+		Iterator <String> wtbIter = p.wtbStore.keySet().iterator();
+		while(wtbIter.hasNext()) {
+			String thisWgbKey = wtbIter.next();
+			ProtoProv.WTB thisWTB = p.wtbStore.get(thisWgbKey);
+			Process thisProcess1 = processMap.get(thisWTB.getSource());
+			Process thisProcess2 = processMap.get(thisWTB.getTarget());
+			//Role thisWTBRole = gOPMFactory.newRole(thisWTB.getRole());
+
+			Iterator<String> thisWTBAccountIds = thisWTB.getContexts().iterator();
+			List<Account> accounts = new ArrayList<Account>();
+			while(thisWTBAccountIds.hasNext()) {
+				String thisAccountStr = thisWTBAccountIds.next();
+				Account thisAccount = gOPMFactory.newAccount(thisAccountStr);
+				accounts.add(thisAccount);
+			}
+			WasTriggeredBy curWasTriggeredBy = gOPMFactory.newWasTriggeredBy(thisProcess1, thisProcess2, accounts);
+			causalDependencies.getUsedOrWasGeneratedByOrWasTriggeredBy().add(curWasTriggeredBy);		
+		}
+		
 		return causalDependencies;
 	}
 
